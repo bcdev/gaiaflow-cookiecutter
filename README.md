@@ -64,6 +64,8 @@ your ML project.
 
 Any files or folders marked with `*` are off-limits—no need to change, modify, 
 or even worry about them. Just focus on the ones without the mark!
+
+Any files or folders marked with `^` can be extended, but carefully.
 ```
 ├── .github/             # GitHub Actions workflows (you are provided with a starter CI)
 ├── dags/                # Airflow DAG definitions 
@@ -83,6 +85,8 @@ or even worry about them. Just focus on the ones without the mark!
 ├── tests/               # Unit and integration tests
 ├── data/                # If you have data locally, move it here and use it so that airflow has access to it.
 ├── README.md            # The one you are reading :p. Feel free to update it based on your project.
+├── pyproject.toml       # Config file containing your package's build information and its metadata
+├── .env * ^             # Your environment variables that docker compose and python scripts can use (already added to .gitignore)
 ├── environment.yml      # Libraries required for local mlops and your project
 ├── mlflow-artifacts/ *  # MLflow artifacts (created if you don't choose minio)
 ├── mlops_run.sh *       # Shell script to start MLOps services locally 

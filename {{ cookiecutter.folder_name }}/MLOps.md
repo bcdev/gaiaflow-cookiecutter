@@ -303,6 +303,13 @@ then update your python-build definitions by:
 
 ## (Optional) Creating your python package distribution
 
+There are two options:
+
+1. You can use the provided CI workflow `.github/workflows/publish.yml` which 
+   is triggered everytime you create a `Release`
+   (or)
+2. You can do it manually as shown below:
+
 First update the `pyproject.toml` as required for your package.
 
 Then install the [PyPi build](https://build.pypa.io/en/latest/) if you 
@@ -337,6 +344,7 @@ you will use for uploading it to PyPi
 ```bash
   pip install your-package
 ```
+
 
 
 ## Accessing/Viewing these services in Pycharm
