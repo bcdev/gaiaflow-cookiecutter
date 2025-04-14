@@ -1,3 +1,9 @@
+## Changes in 0.1.2
+
+### Fixes
+
+* Fixed failing project creation due to missing dependency.
+
 ## Changes in 0.1.1
 
 ### Enhancements
