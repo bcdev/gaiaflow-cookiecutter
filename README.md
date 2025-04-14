@@ -223,7 +223,7 @@ This means now you have successfully installed Docker.
 
 1. Create a separate environment for cookiecutter
 ```bash
-  mamba create -n cc cookiecutter
+  mamba create -n cc cookiecutter ruamel.yaml
   mamba activate cc
 ```
 
