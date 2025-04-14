@@ -75,6 +75,7 @@ the steps below to start your ML journey.
 ### 0. Git Fundamentals. 
 First, we need to initialize a Git repository to make the initial commit.
 ```bash
+  cd {{ cookiecutter.folder_name }}
   git init -b main
   git add .
   git commit -m "Initial commit"
