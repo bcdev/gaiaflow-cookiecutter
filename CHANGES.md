@@ -1,6 +1,19 @@
+## Changes in 0.1.1
+
+### Enhancements
+
+* Added `publish.yml` for publishing the package to PyPi for generated projects.
+* Improved documentation in `MLOps.md`
+
+### Fixes
+
+* Fixed Github workflow bugs.
+* Fixed issue with quotations in f-strings causing test failure.
+
 ## Changes in 0.1.0
 
 ### Enhancements
+
 * **GaiaFlow Framework**: Introduced GaiaFlow, a local MLOps framework designed 
 to streamline and standardize the structure of machine learning projects. 
 * Key Features:
