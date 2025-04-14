@@ -306,7 +306,8 @@ then update your python-build definitions by:
 There are two options:
 
 1. You can use the provided CI workflow `.github/workflows/publish.yml` which 
-   is triggered everytime you create a `Release`
+   is triggered everytime you create a `Release`. If you choose this method, 
+   please add `PYPI_API_TOKEN` to the secrets for this repository.
    (or)
 2. You can do it manually as shown below:
 
