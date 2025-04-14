@@ -36,11 +36,39 @@ classifiers = [
 ]
 # TODO: Update these dependencies
 dependencies = [
+    {% if cookiecutter.show_examples == "yes" %}
+    "keras",
+    "tensorflow",
+    "numpy==2.0.2",
+    {% endif %}
+]
+
+# TODO: Update the dependencies to be excluded
+[tool.setuptools.packages.find]
+exclude = [
+    "test",
+    "extra",
+    "lint",
 ]
 
 # TODO: Update these dependencies
 [project.optional-dependencies]
 extra = []
+dev = [
+    "mlflow",
+    "psycopg2-binary",
+    "boto3",
+    "airflow",
+    "apache-airflow-providers-cncf-kubernetes",
+    "jupyter",
+    "python-dotenv",
+    "fsspec",
+    {% if cookiecutter.use_dag_factory == "yes" %}
+    "dag_factory"
+    {% endif %}
+    "twine",
+    "build",
+]
 test = [
     "pytest",
     "pytest-cov",
