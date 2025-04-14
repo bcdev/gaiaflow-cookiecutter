@@ -18,7 +18,7 @@ keywords = [
 version = "0.0.1"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE", content-type = "text/plain" }
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 classifiers = [
   # Find the list of all classifiers here: https://pypi.org/classifiers/
   # How mature is this project? Common values are
@@ -32,8 +32,11 @@ classifiers = [
   "Topic :: Software Development :: Build Tools",
 
   # Specify the Python versions you support here.
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
 ]
+
 # TODO: Update these dependencies
 dependencies = [
     {% if cookiecutter.show_examples == "yes" %}
@@ -58,13 +61,13 @@ dev = [
     "mlflow",
     "psycopg2-binary",
     "boto3",
-    "airflow",
+    "apache-airflow",
     "apache-airflow-providers-cncf-kubernetes",
     "jupyter",
     "python-dotenv",
     "fsspec",
     {% if cookiecutter.use_dag_factory == "yes" %}
-    "dag_factory"
+    "dag_factory",
     {% endif %}
     "twine",
     "build",
@@ -83,9 +86,6 @@ lint = [
 Homepage = "Update your homepage here"
 Repository = "Update your repository here"
 
-[tool.black]
-line-length = 78
-target-version = ["py312"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
