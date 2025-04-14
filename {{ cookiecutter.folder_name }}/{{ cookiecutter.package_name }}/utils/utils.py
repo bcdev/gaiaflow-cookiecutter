@@ -90,7 +90,7 @@ def show_datasets_info(run_id: str):
 
     print(f"Number of datasets used: {len(datasets)}\n")
     if "data_source" in run.data.params:
-        print(f"Data Source: {run.data.params["data_source"]}")
+        print(f"Data Source: {run.data.params['data_source']}")
     for dataset_input in datasets:
         dataset = dataset_input.dataset
         tags = dataset_input.tags
