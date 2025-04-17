@@ -1,0 +1,20 @@
+name: Build Docker & Dispatch
+
+on:
+  push:
+    branches: [ main ]
+  release:
+    types: [ published ]
+  workflow_dispatch:
+
+jobs:
+  dispatch_event:
+    runs-on: ubuntu-latest
+    steps:
+#      TODO: Add Docker build and push steps
+      - name: Dispatch to CDR
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.CDR_PAT }}
+          repository: https://github.com/bcdev/airflow-dags.git
+          event-type: dag-updated
