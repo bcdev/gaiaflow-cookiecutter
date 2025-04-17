@@ -1,6 +1,6 @@
 # GaiaFlow: MLOps Project Template
 
-[![Unittest Gaiaflow](https://github.com/bcdev/h2ops/actions/workflows/unittest.yml/badge.svg)](https://github.com/bcdev/h2ops/actions/workflows/unittest.yml)
+[![Unittest Gaiaflow](https://github.com/bcdev/gaiaflow/actions/workflows/unittest.yml/badge.svg)](https://github.com/bcdev/gaiaflow/actions/workflows/unittest.yml)
 
 ![Gaiaflow](assets/gaiaflow.png)
 
@@ -229,7 +229,7 @@ This means now you have successfully installed Docker.
 
 2. Generate the project from template:
 ```bash
-  cookiecutter https://github.com/bcdev/h2ops
+  cookiecutter https://github.com/bcdev/gaiaflow
 ```
 
 When prompted for input, enter the details requested. If you dont provide any 
