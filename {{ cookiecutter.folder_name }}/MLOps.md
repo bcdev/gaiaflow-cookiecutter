@@ -411,3 +411,40 @@ commit message).
 
 
 #### P.S. If you face any issues/errors in any of the steps above, please reach out to us.
+
+
+## Moving to Production <sub><sup>(work in progress)</sup></sub>:
+
+For moving into production, the Centralized Dag Repository (CDR) must know that 
+you exist and are interested in using the production airflow.
+                  
+To do so, do the following steps (keep in mind they only have to be done once
+per project by any team member of that project)
+
+- Contact the CDR maintainers and ask them to add your repository as a 
+  `submodule` (They will know what to do!)
+
+- Create a Personal Access Token from your account (make sure your account is a 
+member of the bcdev org for this to work).
+
+  Do as follows:
+  - Go to your Github account Settings
+  - Navigate to `<> Developer Settings` (the last button on the page)
+  - Create a `Personal access token (classic)`
+  - See the image below for reference:
+
+  - Only click on the `repo` permissions
+  - Create the token
+  - Copy and keep it safe somewhere (maybe on KeePassXC)
+  - Now, navigate to your newly created project, create a new Secret
+      - Go to Repository settings
+        - Navigate to `Secrets and Variables -> Actions -> New repository secret`
+        - In the `Name` field, insert `CDR_PAT`
+        - In the `Secret` field, insert your token that generated a few moments ago
+      - Click on `Add Secret`
+
+Now you are ready to deploy your dags to the production Airflow.
+
+Currently, the CI to deploy your dags runs only when you create a new release of 
+your project package. This has been done in order to make sure that each dag
+that goes into production has a release tag to it.
