@@ -1,12 +1,11 @@
 import json
 from airflow.operators.python import PythonOperator
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
-from {{ cookiecutter.package_name }}.runner import run
 
 def task_factory(
     task_id: str,
     func_path: str,
-    func_kwargs: dict,
+    func_kwargs: dict = None,
     image: str = None,
     env: str = "dev",
     xcom_push: bool = True,
@@ -19,6 +18,7 @@ def task_factory(
             func_kwargs[arg_key] = "{{ ti.xcom_pull(task_ids='" + source_task + "', key='" + key + "') }}"
 
     if env == "dev":
+        from {{ cookiecutter.package_name }}.runner import run
         return PythonOperator(
             task_id=task_id,
             python_callable=run,
@@ -29,7 +29,6 @@ def task_factory(
         return KubernetesPodOperator(
             task_id=task_id,
             name=task_id,
-            namespace="default",
             image=image,
             cmds=["python", "-m", "{{ cookiecutter.package_name }}.runner"],
             env_vars={
