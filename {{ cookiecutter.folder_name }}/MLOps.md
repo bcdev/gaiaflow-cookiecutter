@@ -173,6 +173,17 @@ start it without cache)
     - password: `minio123`
 
 
+### 5. Cleanup:
+
+When you docker a lot on your local system to build images, it caches the layers
+that it builds and overtime, this takes up a lot of memory. To remove the cache,
+run this:
+
+```commandline
+  docker builder prune -a -f
+```
+
+
 ## Development Workflow
 
 1. Once the services start, the JupyterLab opens up in your browser. Now, 
