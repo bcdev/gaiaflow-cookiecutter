@@ -8,6 +8,7 @@ add_your_dag_name_here_df_dag:
   description: "add your description here"
   tags:
     - "dag_factory"
+    - "{{ cookiecutter.package_name }}"
   catchup: false
   schedule_interval: "0 0 * * *"
   task_groups:

@@ -18,7 +18,7 @@ with DAG(
     description="add your description here",
     schedule_interval="0 0 * * *",
     catchup=False,
-    tags=["python_dag"]
+    tags=["python_dag", "{{ cookiecutter.package_name }}"]
 ) as dag:
 
     bash_demo = BashOperator(

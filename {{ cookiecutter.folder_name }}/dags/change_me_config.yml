@@ -15,6 +15,7 @@ change_your_dag_name_here_df_dag:
   description: "change your description here"
   tags:
     - "dag_factory"
+    - "{{ cookiecutter.package_name }}"
   # Keep this as false if you would not like to backfill the runs if the start_date is in the past.
   catchup: false
   # Below is an cron expression. To learn more, see here: https://crontab.guru/.
