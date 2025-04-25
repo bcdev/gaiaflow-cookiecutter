@@ -1,3 +1,9 @@
+# !!PLEASE DO NOT EDIT/DELETE THIS!!
+# This file is the main entry point to your package when using Airflow to
+# create DAGs from the task_factory.
+# It imports the required function from your package and executes it with the
+# arguments provided
+
 import importlib
 import json
 import os
@@ -15,6 +21,8 @@ def run(func_path=None, kwargs=None):
         result = func(**kwargs)
         print("Function result:", result)
         if os.environ.get("ENV") == "prod":
+            # This is needed when we use KubernetesPodOperator and want to
+            # share information via XCOM.
             with open("/airflow/xcom/return.json", "w") as f:
                 json.dump(result, f)
 
