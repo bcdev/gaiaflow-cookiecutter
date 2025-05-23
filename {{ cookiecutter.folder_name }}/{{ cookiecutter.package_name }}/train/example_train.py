@@ -137,26 +137,7 @@ class MnistTrainer:
         print("Training complete. Model logged in MLflow.")
 
 
-def example_train(ti: "TaskInstance"=None):
-    """
-    The argument `ti` provides a feature called `XCom` that means
-    Cross-Communications which facilitates sharing small amounts of data from
-    one task to another.
-    This argument is provided automatically by airflow to its tasks.
-    Since this will be one of the tasks in the Airlfow DAG, we can access it
-    here. But if you want to run this without airflow, you can remove the
-    Airflow related code.
-    See the usage below for ti.xcom_pull and to.xcom_push if you need to share
-    the data to downstream tasks or get the task from upstream tasks
-    respectively.
-    """
-
-    # Here we pull data from the preprocessing step that gives us the path to
-    # the stored data
-    preprocessed_path = ti.xcom_pull(task_ids="ml.preprocess_task",
-                                     key="preprocessed_path")
-    bucket_name = ti.xcom_pull(task_ids="ml.preprocess_task",
-                               key="bucket_name")
+def example_train(preprocessed_path, bucket_name):
     train_data, test_data, s3_data_path = load_preprocessed_data(preprocessed_path,
                                                     bucket_name)
     model = get_model()

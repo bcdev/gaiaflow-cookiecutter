@@ -1,7 +1,6 @@
 # PLEASE DELETE ME AFTER YOU ARE DONE UNDERSTANDING!!
 
 import os
-from typing import TYPE_CHECKING
 
 import fsspec
 import numpy as np
@@ -13,9 +12,6 @@ from {{ cookiecutter.package_name }}.dataloader.example_data_without_minio impor
 
 
 load_dotenv()
-
-if TYPE_CHECKING:
-    from airflow.models import TaskInstance
 
 
 def feature_engineering(X: np.ndarray, is_single_input: bool = False):
@@ -63,7 +59,7 @@ def save_data(
     return save_path
 
 
-def preprocess(ti: "TaskInstance" = None):
+def preprocess():
     # For training data
     (X_train, y_train), (X_test, y_test) = load_raw_data()
 
@@ -79,8 +75,11 @@ def preprocess(ti: "TaskInstance" = None):
         path = "data/preprocessing/"
 
     stored_path = save_data(X_train_processed, y_train, X_test_processed, y_test, path)
-    ti.xcom_push(key="preprocessed_path", value=stored_path)
     print("Preprocessing complete!")
+    # Returning a dict would make it available via xcom (
+    # cross-communications between tasks) to be picked up by the downstream
+    # tasks
+    return {"preprocessed_path": stored_path}
 
 
 def preprocess_single_sample(sample: np.ndarray):
