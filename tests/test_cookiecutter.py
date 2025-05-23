@@ -24,7 +24,7 @@ CORE_FILES = {
     "README.md",
     ".env",
     ".gitignore",
-    "MLOps.md",
+    "MLOPS.md",
     "environment.yml",
     "scripts/example_script",
     "dags/README.md",
