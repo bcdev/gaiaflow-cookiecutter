@@ -12,6 +12,6 @@ RUN micromamba install -f environment.yml -n base
 
 ENV PATH=/opt/conda/bin:$PATH
 
-COPY {{ cookiecutter.package_name }} ./cookiecutter.package_name
+COPY {{ cookiecutter.package_name }} ./{{ cookiecutter.package_name }}
 
 ENTRYPOINT ["python", "-m", "{{ cookiecutter.package_name }}.runner"]
