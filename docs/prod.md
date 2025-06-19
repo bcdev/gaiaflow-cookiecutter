@@ -111,7 +111,9 @@ To do so:
 
 1. If not done already, ask the maintainers of the [CDR](https://github.com/bcdev/airflow-dags)
    (Centralized DAG repository) to add your repository as a submodule.
-2. Then, create a release in your project repo. This will trigger the CI to 
-   dispatch an event to the CDR to let it know you are re
+2. Make sure you change the task factory mode to `prod`.
+3. Then, create a release in your project repo. This will trigger the CI to 
+   dispatch an event to the CDR to let it know you are ready for loading and 
+   triggering your DAG(s) from the production deployment of Airflow at BC.
 
 

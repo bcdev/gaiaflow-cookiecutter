@@ -428,8 +428,9 @@ commit message).
 
 ## Moving to Production <sub><sup>(work in progress)</sup></sub>:
 
-For moving into production, the Centralized Dag Repository (CDR) must know that 
-you exist and are interested in using the production airflow.
+For moving into production, the [Centralized Dag Repository](https://github.com/bcdev/airflow-dags)
+(CDR) must know that you exist and are interested in using the production 
+airflow.
                   
 To do so, do the following steps (keep in mind they only have to be done once
 per project by any team member of that project)
