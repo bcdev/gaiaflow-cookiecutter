@@ -23,7 +23,7 @@ with DAG(
 
     bash_demo = BashOperator(
         task_id="bash_demo",
-        bash_command="${AIRFLOW_HOME}/scripts/example_script"
+        bash_command="${AIRFLOW_HOME}/scripts/example_script arg1 arg2"
     )
 
     with TaskGroup(group_id="ml", tooltip="this is a ml task group") as ml_group:

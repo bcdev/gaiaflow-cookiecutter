@@ -166,3 +166,5 @@ mlartifacts/
 mlruns/
 
 .example*
+
+.env

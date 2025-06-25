@@ -20,7 +20,7 @@ def load_preprocessed_data(preprocessed_path: str, bucket_name: str):
     )
 
     local_path = "/tmp"
-    local_file = f"{local_path}/{preprocessed_path.split("/")[-1]}"
+    local_file = f"{local_path}/{preprocessed_path.split('/')[-1]}"
     s3.download_file(bucket_name, preprocessed_path, local_file)
 
     data = np.load(local_file)

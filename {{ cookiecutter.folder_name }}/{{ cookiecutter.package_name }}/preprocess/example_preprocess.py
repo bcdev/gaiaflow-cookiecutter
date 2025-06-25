@@ -16,7 +16,7 @@ from {{ cookiecutter.package_name }}.dataloader.example_data import (
 load_dotenv()
 
 s3 = get_s3_client(
-    endpoint_url=os.getenv("MLFLOW_S3_ENDPOINT_URL"),
+    endpoint_url=os.getenv("S3_ENDPOINT_URL"),
     access_key=os.getenv("AWS_ACCESS_KEY_ID"),
     secret_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
 )
@@ -90,36 +90,13 @@ def example_preprocess():
                            y_test, path,
               timestamp)
     print("Preprocessing complete!")
+
     # Returning a dict would make it available via xcom (
     # cross-communications between tasks) to be picked up by the downstream
-    # tasks
+    # tasks. Make sure, you pass in all the information that is required by
+    # the downstream tasks which depend on this task. For e.g,
+    # `example_train` depends on this task and expects these two arguments.
     return {"preprocessed_path": stored_path, "bucket_name": bucket_name}
-
-
-def preprocess_single_sample(sample: np.ndarray):
-    """
-    Preprocess a single input sample
-
-    Args:
-        sample: Single input image of shape (28, 28)
-
-    Returns:
-        Preprocessed sample of shape (1, 28, 28, 1)
-    """
-    return feature_engineering(sample, is_single_input=True)
-
-
-def preprocess_batch_samples(samples: np.ndarray):
-    """
-    Preprocess a batch of input samples
-
-    Args:
-        samples: Batch of input images of shape (batch_size, 28, 28)
-
-    Returns:
-        Preprocessed batch of shape (batch_size, 28, 28, 1)
-    """
-    return feature_engineering(samples, is_single_input=False)
 
 
 if __name__ == "__main__":

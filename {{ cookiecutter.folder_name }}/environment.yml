@@ -7,7 +7,7 @@ dependencies:
   - mlflow
   - psycopg2-binary
   - boto3
-  - airflow
+  - airflow < 3.0
   - apache-airflow-providers-cncf-kubernetes
   - jupyter
   - python-dotenv

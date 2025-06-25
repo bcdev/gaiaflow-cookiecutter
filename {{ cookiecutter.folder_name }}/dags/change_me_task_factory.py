@@ -95,4 +95,6 @@ with DAG(
 #  cleanup images on registry, local etc.)
 #  S3 credentials access?
 #  Add sensor based DAGs
-#  Add version.py in package
+#  [DONE] Add version.py in package
+#  Improve change_me_train.py and other files.
+#  Make sure dag_factory works in prod env

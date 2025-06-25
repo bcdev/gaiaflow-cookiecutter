@@ -75,7 +75,7 @@ def preprocess(path: str):
     save_data(data, path)
 
     print("Preprocessing complete!")
-    return path
+    return {"preprocessed_path": path}
 
 
 if __name__ == "__main__":

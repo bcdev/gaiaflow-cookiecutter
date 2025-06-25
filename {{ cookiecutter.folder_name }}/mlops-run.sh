@@ -62,11 +62,7 @@ check_port() {
 }
 
 echo "Setting up directories..."
-{% if cookiecutter.use_minio == "no" %}
-create_directory "mlartifacts"
-{% endif %}
 create_directory "logs"
-create_directory "scripts"
 create_directory "data"
 
 check_port "$JUPYTER_PORT"

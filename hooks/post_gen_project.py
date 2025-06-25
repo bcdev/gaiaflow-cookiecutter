@@ -59,87 +59,18 @@ def modify_environment_yaml(env_file: pathlib.Path, to_be_deleted_deps: list[str
 
 
 def main():
-    to_be_deleted_deps = []
-    use_dag_factory = "{{ cookiecutter.use_dag_factory }}".strip().lower()
     show_examples = "{{ cookiecutter.show_examples }}".strip().lower()
-
-    use_minio = "{{ cookiecutter.use_minio }}".strip().lower()
-
-    if use_dag_factory != "yes":
-        to_be_deleted_deps.append("pip")
-        to_be_deleted_deps.append({"pip": ["dag_factory"]})
-
-    env_file = pathlib.Path().cwd() / "environment.yml"
-    modify_environment_yaml(env_file, to_be_deleted_deps)
-
-    if use_minio == "yes":
-        remove_file(
-            os.path.join(
-                os.getcwd(),
-                "{{ cookiecutter.package_name }}",
-                "dataloader/example_data_without_minio.py",
-            )
-        )
-        remove_file(
-            os.path.join(
-                os.getcwd(),
-                "{{ cookiecutter.package_name }}",
-                "preprocess/example_preprocess_without_minio.py",
-            )
-        )
-        remove_file(
-            os.path.join(
-                os.getcwd(),
-                "{{ cookiecutter.package_name }}",
-                "train/example_train_without_minio.py",
-            )
-        )
-    else:
-        remove_file(
-            os.path.join(
-                os.getcwd(),
-                "{{ cookiecutter.package_name }}",
-                "dataloader/example_data.py",
-            )
-        )
-        remove_file(
-            os.path.join(
-                os.getcwd(),
-                "{{ cookiecutter.package_name }}",
-                "preprocess/example_preprocess.py",
-            )
-        )
-        remove_file(
-            os.path.join(
-                os.getcwd(),
-                "{{ cookiecutter.package_name }}",
-                "train/example_train.py",
-            )
-        )
-
-    if show_examples != "yes":
-        remove_file(os.path.join(os.getcwd(), "dags/example_config.yml"))
-        remove_file(os.path.join(os.getcwd(), "dags/example_dag.py"))
-
-    if use_dag_factory == "yes":
-        remove_file(os.path.join(os.getcwd(), "dags/change_me_dag.py"))
-        remove_file(os.path.join(os.getcwd(), "dags/example_dag.py"))
-    else:
-        remove_file(os.path.join(os.getcwd(), "dags/change_me_config.yml"))
-        remove_file(os.path.join(os.getcwd(), "dags/change_me_generate_dags.py"))
-        remove_file(os.path.join(os.getcwd(), "dags/example_config.yml"))
 
     if show_examples != "yes":
         file_paths_config = [
             "dataloader/example_data.py",
-            "dataloader/example_data_without_minio.py",
             "model_pipeline/example_model_pipeline.py",
             "models/example_model.py",
             "postprocess/example_postprocess.py",
             "preprocess/example_preprocess.py",
-            "preprocess/example_preprocess_without_minio.py",
             "train/example_train.py",
-            "train/example_train_without_minio.py",
+            "dags/example_config.yml",
+            "dags/example_dag.py",
         ]
 
         for file_path_relative in file_paths_config:
