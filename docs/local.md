@@ -8,24 +8,6 @@ Please read or skim this completely before starting your journey.
 
 If you face any issues or have any feedback, please share it with us.
 
-# Table of Contents
-- [Project Structure](#project-structure)
-- [Getting Started with MLOps](#getting-started-with-mlops)
-  * [0. Git Fundamentals](#0-git-fundamentals)
-  * [1. Create and activate mamba environment](#1-create-and-activate-mamba-environment)
-  * [2. Start the services](#2-start-the-services)
-  * [3. Stopping the services](#3-stopping-the-services)
-  * [4. Accessing the services](#4-accessing-the-services)
-- [Development Workflow](#development-workflow)
-- [Deployment workflow](#deployment-workflow)
-  * [Deploying Model as a Container locally](#deploying-model-as-a-container-locally)
-  * [Deploying local inference server](#deploying-local-inference-server)
-    + [Troubleshooting:](#troubleshooting-)
-- [(Optional) Creating your python package distribution](#-optional--creating-your-python-package-distribution)
-- [Accessing/Viewing these services in Pycharm](#accessing-viewing-these-services-in-pycharm)
-- [❌ DO NOT MODIFY THESE FILES ❌](#--do-not-modify-these-files--)
-
-
 ## Project Structure
 
 Any files or folders marked with `*` are off-limits—no need to change, modify, 
@@ -69,10 +51,10 @@ starting with `example_*`. Please have a look at these files to get more info
 and to get started.
 
 
-## Getting Started with MLOps
+## Local development
 
 Now that you have created a project using the template provided, please follow
-the steps below to start your ML journey.
+the steps below to start your MLOps journey.
 
 ### 0. Git Fundamentals. 
 First, we need to initialize a Git repository to make the initial commit.

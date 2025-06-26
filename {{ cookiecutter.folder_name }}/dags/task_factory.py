@@ -74,7 +74,7 @@ def task_factory(
             task_id=task_id,
             name=task_id,
             image=image,
-            cmds=["python", "-m", "frijun.runner"],
+            cmds=["python", "-m", "{{ cookiecutter.package_name }}.runner"],
             env_vars=env_vars,
             env_from=env_from,
             get_logs=True,

@@ -122,12 +122,7 @@ shown in the next step.
 
 The following script spins up containers for Airflow, MLFLow, MinIO 
 (if you chose it) and Jupyter Lab (not in a container).
-```bash
-  chmod +x mlops-run.sh
-```
-```bash
-  ./mlops-run.sh -b
-```
+
 The following flags exist which could alter the behaviour of the way the 
 framework runs, but the user should not worry about it or change them if not 
 needed.
@@ -142,9 +137,7 @@ NOTE: When you run this for the first time, make sure you use the `-b` flag as
 it builds the images for the first time as shown above.
 Next time when you start it again, you start it without the flag as it saves 
 time by not building the same images again:
-```bash
-  ./mlops-run.sh
-```
+
 
 ### 3. Stopping the services
 
@@ -153,7 +146,8 @@ with your project, need to free up system resources, or want to apply some
 updates.
 To gracefully stop the services, run this in the terminal where you started them:
 ```bash
-  ctrl + C
+  ctrl +  if current process is running (not terminated but terminal closed) or 
+  python -m gagaiglow_mangaer.py --stop
 ```
 
 ### 4. Accessing the services
@@ -220,14 +214,14 @@ check if everything was generated correctly.
 docker (recommended) or locally as shown in the next section.
 
 
-## Deployment workflow
+## MLFlow Model Deployment workflow locally
 
 Once you have a model trained, you can deploy it locally either as
 container or serve it directly from MinIO S3.
 We recommend to deploy it as a container as this makes sure that it has its 
 own environment for serving.
 
-### Deploying Model as a Container locally
+### Deploying Model as a Container locally -> how can this be made available for production cluster dude?
 
 Since we have been working with docker containers so far, all the environment 
 variables have been set for them, but now as we need to deploy them,

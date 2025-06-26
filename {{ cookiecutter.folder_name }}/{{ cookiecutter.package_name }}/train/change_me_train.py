@@ -110,7 +110,7 @@ if __name__ == "__main__":
     import mlflow
 
     # 2. Start an MLflow experiment (ensure the MLflow tracking server is running)
-    mlflow.set_tracking_uri(os.getenv("J_MLFLOW_SERVER_URI"))
+    mlflow.set_tracking_uri(os.getenv("J_MLFLOW_TRACKING_URI"))
     experiment_id = get_or_create_experiment("your-experiment-name")
     mlflow.set_experiment("experiment_name")
 

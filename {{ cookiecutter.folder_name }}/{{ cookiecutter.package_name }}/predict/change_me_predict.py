@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 def predict(model_uri: str):
     load_dotenv()
     print("model URI: ", model_uri)
-    mlflow.set_tracking_uri(os.getenv("MLFLOW_SERVER_URI"))
+    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
 
     model = mlflow.pyfunc.load_model(model_uri)
     print("Model loaded")

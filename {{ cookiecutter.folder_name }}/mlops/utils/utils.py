@@ -15,7 +15,10 @@ def docker_network_gateway(network_name: str = "airflow") -> str | None:
             if "Gateway" in line:
                 match = re.search(r'"Gateway"\s*:\s*"([^"]+)"', line)
                 if match:
+                    print(f"Docker network Gateway for Minikube is - "
+                          f"{match.group(1)}")
                     return match.group(1)
+        print("Is your minikube cluster running? Please run and try again.")
         return None
 
     except subprocess.CalledProcessError as e:
@@ -24,3 +27,6 @@ def docker_network_gateway(network_name: str = "airflow") -> str | None:
     except FileNotFoundError:
         print("Docker command not found. Is Docker installed and in your PATH?")
         return None
+
+if __name__ == "__main__":
+    docker_network_gateway()

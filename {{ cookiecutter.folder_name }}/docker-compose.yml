@@ -9,7 +9,7 @@ x-airflow-common:
     AIRFLOW__CORE__EXECUTOR: ${CORE_EXECUTOR}
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW_DB_CONN}
     AIRFLOW__CORE__LOAD_EXAMPLES: ${LOAD_EXAMPLES}
-    MLFLOW_TRACKING_URI: ${MLFLOW_SERVER_URI}
+    MLFLOW_TRACKING_URI: http://mlflow:${MLFLOW_HOST_PORT}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
     AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
     MLFLOW_S3_ENDPOINT_URL: http://minio:${MINIO_PORT}
@@ -63,7 +63,7 @@ services:
             --default-artifact-root s3://${MLFLOW_BUCKET_NAME} --artifacts-destination s3://${MLFLOW_BUCKET_NAME}
             --backend-store-uri postgresql://mlflow:mlflow@postgres-mlflow/mlflow --serve-artifacts
     environment:
-      MLFLOW_TRACKING_URI: ${MLFLOW_SERVER_URI}
+      MLFLOW_TRACKING_URI: http://mlflow:${MLFLOW_HOST_PORT}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       MLFLOW_S3_ENDPOINT_URL: http://minio:${MINIO_PORT}

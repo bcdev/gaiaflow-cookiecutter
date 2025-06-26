@@ -46,7 +46,7 @@ class MnistTrainer:
         y_train = keras.utils.to_categorical(y_train, 10)
         y_test = keras.utils.to_categorical(y_test, 10)
 
-        mlflow.set_tracking_uri(os.getenv("MLFLOW_SERVER_URI"))
+        mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
         experiment_id = get_or_create_experiment("MNIST_Hyperparameter_Search_autolog")
         mlflow.set_experiment(experiment_id=experiment_id)
 
