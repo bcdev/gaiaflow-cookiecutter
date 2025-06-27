@@ -6,11 +6,12 @@ import shutil
 from datetime import datetime
 from typing import Any
 
+from docker_config import DOCKER_IMAGE_NAME
 
 class MinikubeManager:
     def __init__(self, clean=False, stop=False):
         self.minikube_profile = "airflow"
-        self.docker_image_name = "my-local-image/kpo-test:v1"
+        self.docker_image_name = DOCKER_IMAGE_NAME
         self.clean = clean
         if stop:
             self.stop_minikube()
@@ -24,9 +25,9 @@ class MinikubeManager:
         print(f"\033[0;31mERROR:\033[0m {message}", file=sys.stderr)
         sys.exit(1)
 
-    def run(self, command: list, error: str):
+    def run(self, command: list, error: str, env=None):
         try:
-            return subprocess.check_call(command)
+            return subprocess.check_call(command, env=env)
         except subprocess.CalledProcessError:
             self.log(error)
 
@@ -55,7 +56,8 @@ class MinikubeManager:
 
             if self.clean:
                 self.log("Full cleanup: removing all minikube data")
-                self.run(["minikube", "delete", "--all", "--purge"])
+                self.run(["minikube", "delete", "--all", "--purge"], "Error "
+                                                                     "deleting minikube")
                 shutil.rmtree(os.path.expanduser("~/.minikube"), ignore_errors=True)
                 shutil.rmtree(os.path.expanduser("~/.kube"), ignore_errors=True)
                 minikube_path = shutil.which("minikube")
@@ -97,11 +99,11 @@ class MinikubeManager:
                 self.log(
                     f"Minikube cluster [{self.minikube_profile}] is already running."
                 )
+                self.log("Switching Docker context to Minikube...")
+                os.system(f"eval $(minikube -p {self.minikube_profile} docker-env)")
                 return
-            else:
-                self.log(f"Minikube cluster [{self.minikube_profile}] is not running.")
         except subprocess.CalledProcessError:
-            pass
+            self.log(f"Minikube cluster [{self.minikube_profile}] is not running.")
 
         self.log(f"Starting Minikube cluster [{self.minikube_profile}]...")
         self.run(
@@ -118,6 +120,8 @@ class MinikubeManager:
 
         self.log("Switching Docker context to Minikube...")
         os.system(f"eval $(minikube -p {self.minikube_profile} docker-env)")
+
+
 
     def stop_minikube(self):
         self.log(f"Stopping minikube profile [{self.minikube_profile}]...")
@@ -140,8 +144,18 @@ class MinikubeManager:
             self.error("Dockerfile not found")
             sys.exit(1)
         self.log(f"Building Docker image [{self.docker_image_name}]...")
+        env = os.environ.copy()
+        result = subprocess.run(
+            ["minikube", "-p", self.minikube_profile, "docker-env"],
+            stdout=subprocess.PIPE,
+            check=True,
+        )
+        for line in result.stdout.decode().splitlines():
+            if line.startswith("export "):
+                key, value = line.replace("export ", "").split("=", 1)
+                env[key] = value.strip('"')
         self.run(["docker", "build", "-t", self.docker_image_name, "."],
-                 "Error building docker image.")
+                 "Error building docker image.", env=env)
 
     def create_kube_config_inline(self):
         filename = "kube_config_inline"
@@ -200,10 +214,10 @@ class MinikubeManager:
 
     def start(self):
         self.log("Starting Local KPO test setup...")
-        self.cleanup()
+        # self.cleanup()
         self.start_minikube()
-        self.create_kube_config_inline()
         self.build_docker_image()
+        self.create_kube_config_inline()
         self.create_secrets(
             secret_name="my-minio-creds",
             secret_data={
