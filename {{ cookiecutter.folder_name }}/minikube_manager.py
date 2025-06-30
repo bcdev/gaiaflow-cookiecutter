@@ -1,20 +1,35 @@
 import argparse
 import os
+import platform
 import subprocess
 import sys
 import shutil
+import yaml
+from pathlib import Path
 from datetime import datetime
 from typing import Any
 
 from docker_config import DOCKER_IMAGE_NAME
 
+
 class MinikubeManager:
-    def __init__(self, clean=False, stop=False):
+    def __init__(self, stop=False, start=False, restart=False, build_only=False, create_config_only=False):
         self.minikube_profile = "airflow"
         self.docker_image_name = DOCKER_IMAGE_NAME
-        self.clean = clean
+        self.build_only = build_only
+        self.os_type = platform.system().lower()
+
         if stop:
             self.stop_minikube()
+        elif restart:
+            self.stop_minikube()
+            self.start_minikube()
+        elif start:
+            self.start_minikube()
+        elif build_only:
+            self.build_docker_image()
+        elif create_config_only:
+            self.create_kube_config_inline()
 
     @staticmethod
     def log(message):
@@ -29,62 +44,7 @@ class MinikubeManager:
         try:
             return subprocess.check_call(command, env=env)
         except subprocess.CalledProcessError:
-            self.log(error)
-
-    def cleanup(self):
-        self.log("Performing cleanup...")
-
-        if shutil.which("minikube"):
-            result = subprocess.run(
-                f"minikube profile list | grep '^{self.minikube_profile} '",
-                shell=True,
-                stdout=subprocess.DEVNULL,
-            )
-            if result.returncode == 0:
-                self.log(f"Stopping and deleting profile: {self.minikube_profile}")
-                self.run(
-                    ["minikube", "stop", "--profile", self.minikube_profile],
-                    f"Error stopping minikube cluster profile [{
-                        self.minikube_profile
-                    }]",
-                )
-                self.run(
-                    ["minikube", "delete", "--profile", self.minikube_profile],
-                    "Error deleting minikube cluster "
-                    f"profile [{self.minikube_profile}]",
-                )
-
-            if self.clean:
-                self.log("Full cleanup: removing all minikube data")
-                self.run(["minikube", "delete", "--all", "--purge"], "Error "
-                                                                     "deleting minikube")
-                shutil.rmtree(os.path.expanduser("~/.minikube"), ignore_errors=True)
-                shutil.rmtree(os.path.expanduser("~/.kube"), ignore_errors=True)
-                minikube_path = shutil.which("minikube")
-                if minikube_path:
-                    self.run(
-                        ["sudo", "rm", "-f", minikube_path],
-                        f"Error removing {minikube_path}",
-                    )
-        else:
-            self.error(
-                "Minikube not found. Please follow the documentation to install it."
-            )
-
-    # def install_minikube(self):
-    #     self.log("Installing minikube...")
-    #     os_type = platform.system().lower()
-    #     arch = platform.machine()
-    #     arch = {"x86_64": "amd64", "aarch64": "arm64"}.get(arch, None)
-    #     if not arch:
-    #         self.error("Unsupported architecture.")
-    #         sys.exit(1)
-    #
-    #     url = f"https://github.com/kubernetes/minikube/releases/latest/download/minikube-{os_type}-{arch}"
-    #     subprocess.check_call(["curl", "-LO", url])
-    #     subprocess.check_call(["sudo", "install", f"minikube-{os_type}-{arch}", "/usr/local/bin/minikube"])
-    #     os.remove(f"minikube-{os_type}-{arch}")
-    #     self.log("Minikube installed")
+            self.error(error)
 
     def start_minikube(self):
         self.log(f"Checking Minikube cluster [{self.minikube_profile}] status...")
@@ -96,16 +56,11 @@ class MinikubeManager:
                 check=True,
             )
             if b"Running" in result.stdout:
-                self.log(
-                    f"Minikube cluster [{self.minikube_profile}] is already running."
-                )
-                self.log("Switching Docker context to Minikube...")
-                os.system(f"eval $(minikube -p {self.minikube_profile} docker-env)")
+                self.log(f"Minikube cluster [{self.minikube_profile}] is already running.")
                 return
         except subprocess.CalledProcessError:
-            self.log(f"Minikube cluster [{self.minikube_profile}] is not running.")
+            self.log(f"Minikube cluster [{self.minikube_profile}] is not running. Starting...")
 
-        self.log(f"Starting Minikube cluster [{self.minikube_profile}]...")
         self.run(
             [
                 "minikube",
@@ -115,50 +70,58 @@ class MinikubeManager:
                 "--driver=docker",
                 "--cpus=4",
                 "--memory=4g",
-            ], f"Error starting minikube profile [{self.minikube_profile}]"
+            ],
+            f"Error starting minikube profile [{self.minikube_profile}]"
         )
-
-        self.log("Switching Docker context to Minikube...")
-        os.system(f"eval $(minikube -p {self.minikube_profile} docker-env)")
-
-
 
     def stop_minikube(self):
         self.log(f"Stopping minikube profile [{self.minikube_profile}]...")
-        try:
-            self.run(
-                [
-                    "minikube",
-                    "stop",
-                    "--profile",
-                    self.minikube_profile,
-                ], f"Error stopping minikube profile [{self.minikube_profile}]"
-            )
-        except subprocess.CalledProcessError as e:
-            raise
-        self.log(f"Stopping minikube profile [{self.minikube_profile}] "
-                 "successful.")
+        self.run(["minikube", "stop", "--profile", self.minikube_profile],
+                 f"Error stopping minikube profile [{self.minikube_profile}]")
+        self.log(f"Stopped minikube profile [{self.minikube_profile}]")
 
     def build_docker_image(self):
-        if not os.path.exists("Dockerfile"):
+        if not Path("Dockerfile").exists():
             self.error("Dockerfile not found")
-            sys.exit(1)
         self.log(f"Building Docker image [{self.docker_image_name}]...")
-        env = os.environ.copy()
+
         result = subprocess.run(
-            ["minikube", "-p", self.minikube_profile, "docker-env"],
+            ["minikube", "-p", self.minikube_profile, "docker-env", "--shell", "bash"],
             stdout=subprocess.PIPE,
             check=True,
         )
+        env = os.environ.copy()
         for line in result.stdout.decode().splitlines():
             if line.startswith("export "):
-                key, value = line.replace("export ", "").split("=", 1)
-                env[key] = value.strip('"')
+                try:
+                    key, value = line.replace("export ", "").split("=", 1)
+                    env[key.strip()] = value.strip('"')
+                except ValueError:
+                    continue
         self.run(["docker", "build", "-t", self.docker_image_name, "."],
                  "Error building docker image.", env=env)
 
     def create_kube_config_inline(self):
+        kube_config = Path.home() / ".kube" / "config"
+        backup_config = kube_config.with_suffix(".backup")
         filename = "kube_config_inline"
+
+        if self.os_type == "windows" and kube_config.exists():
+            self.log("Detected Windows: patching kube config with host.docker.internal")
+            with open(kube_config, "r") as f:
+                config_data = yaml.safe_load(f)
+
+            with open(backup_config, "w") as f:
+                yaml.dump(config_data, f)
+
+            for cluster in config_data.get("clusters", []):
+                server = cluster.get("cluster", {}).get("server", "")
+                if "127.0.0.1" in server or "localhost" in server:
+                    cluster["cluster"]["server"] = server.replace("127.0.0.1", "host.docker.internal").replace("localhost", "host.docker.internal")
+
+            with open(kube_config, "w") as f:
+                yaml.dump(config_data, f)
+
         self.log("Creating kube config inline file...")
         with open(filename, "w") as f:
             subprocess.check_call(
@@ -174,8 +137,27 @@ class MinikubeManager:
                 ],
                 stdout=f,
             )
-        if os.path.exists(filename):
-            self.log(f"Created kube config inline file {filename}")
+
+        self.log(f"Created kube config inline file {filename}")
+
+        self.log(f"Adding insecure-skip-tls-verfiy for local setup in kube config inline file {filename}")
+
+        with open("kube_config_inline", "r") as f:
+            kube_config_data = yaml.safe_load(f)
+
+        for cluster in kube_config_data.get("clusters", []):
+            cluster_data = cluster.get("cluster", {})
+            if "insecure-skip-tls-verify" not in cluster_data:
+                cluster_data["insecure-skip-tls-verify"] = True
+
+        self.log(f"Saving kube config inline file {filename}")
+        with open("kube_config_inline", "w") as f:
+            yaml.safe_dump(kube_config_data, f, default_flow_style=False)
+
+        if self.os_type == "windows" and backup_config.exists():
+            shutil.copy(backup_config, kube_config)
+            backup_config.unlink()
+            self.log("Reverted kube config to original state.")
 
     def create_secrets(self, secret_name: str, secret_data: dict[str, Any]):
         self.log(f"Checking if secret [{secret_name}] exists...")
@@ -187,7 +169,7 @@ class MinikubeManager:
             "--",
             "get",
             "secret",
-            "my-minio-creds",
+            secret_name,
         ]
         result = subprocess.run(
             check_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
@@ -196,25 +178,23 @@ class MinikubeManager:
             self.log(f"Secret [{secret_name}] already exists. Skipping creation.")
         else:
             self.log(f"Creating secret [{secret_name}]...")
-            subprocess.check_call(
-                [
-                    "minikube",
-                    "kubectl",
-                    "-p",
-                    self.minikube_profile,
-                    "--",
-                    "create",
-                    "secret",
-                    "generic",
-                    "my-minio-creds",
-                    "--from-literal=AWS_ACCESS_KEY_ID=minio",
-                    "--from-literal=AWS_SECRET_ACCESS_KEY=minio123",
-                ]
-            )
+            create_cmd = [
+                "minikube",
+                "kubectl",
+                "-p",
+                self.minikube_profile,
+                "--",
+                "create",
+                "secret",
+                "generic",
+                secret_name,
+            ]
+            for k, v in secret_data.items():
+                create_cmd.append(f"--from-literal={k}={v}")
+            subprocess.check_call(create_cmd)
 
     def start(self):
-        self.log("Starting Local KPO test setup...")
-        # self.cleanup()
+        self.log("Starting full setup...")
         self.start_minikube()
         self.build_docker_image()
         self.create_kube_config_inline()
@@ -225,24 +205,36 @@ class MinikubeManager:
                 "AWS_SECRET_ACCESS_KEY": "minio123",
             },
         )
-
-        self.log(
-            f"Minikube cluster [{self.minikube_profile}] is up and running. Have fun!"
-        )
+        self.log(f"Minikube cluster [{self.minikube_profile}] is ready!")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Minikube manager")
-    parser.add_argument(
-        "-c", "--clean", action="store_true", help="Remove minikube from system."
-    )
-    parser.add_argument(
-        "-s", "--stop", action="store_true", help="Stop minikube cluster"
-    )
+
+    group = parser.add_mutually_exclusive_group(required=True)
+
+    group.add_argument("-s", "--stop", action="store_true", help="Stop minikube cluster")
+    group.add_argument("-r", "--restart", action="store_true", help="Restart minikube cluster")
+    group.add_argument("--start", action="store_true", help="Start minikube cluster")
+    group.add_argument("--build-only", action="store_true", help="Only build docker image inside minikube")
+    group.add_argument("--create-config-only", action="store_true", help="Create inline config for using it in Docker compose.")
+    # TODO: Remove this
+    group.add_argument("--create-secrets", action="store_true", help="Create secrets for using it in your pods. Will be removed")
+
     args = parser.parse_args()
-    minikube = MinikubeManager(clean=args.clean, stop=args.stop)
-    if not args.stop:
-        minikube.start()
+    manager = MinikubeManager(
+        stop=args.stop,
+        restart=args.restart,
+        start=args.start,
+        build_only=args.build_only,
+        create_config_only = args.create_config_only
+    )
+    if args.create_secrets:
+        manager.create_secrets(secret_name="my-minio-creds",
+            secret_data={
+                "AWS_ACCESS_KEY_ID": "minio",
+                "AWS_SECRET_ACCESS_KEY": "minio123",
+            },)
 
 
 if __name__ == "__main__":

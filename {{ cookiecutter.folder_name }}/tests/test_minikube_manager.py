@@ -1,89 +1,160 @@
 import unittest
-from unittest.mock import patch, call, mock_open
-from minikube_manager import MinikubeManager
+from unittest.mock import patch, mock_open, call, ANY
+import sys
+import subprocess
+from minikube_manager import MinikubeManager, main
+from pathlib import Path
 
 
 class TestMinikubeManager(unittest.TestCase):
+
     def setUp(self):
-        self.manager = MinikubeManager(clean=False)
+        self.manager = MinikubeManager()
 
-    @patch("shutil.which", return_value="/usr/local/bin/minikube")
-    @patch("subprocess.run")
-    @patch("subprocess.call")
-    def test_cleanup_with_minikube_no_clean(self, mock_call, mock_run, mock_which):
-        mock_run.return_value.returncode = 0
-        self.manager.cleanup()
-        self.assertIn(call(["minikube", "stop", "--profile", "airflow"]), mock_call.call_args_list)
+    @patch.object(MinikubeManager, "start_minikube")
+    def test_init_with_start(self, mock_start):
+        MinikubeManager(start=True)
+        mock_start.assert_called_once()
 
-    @patch("shutil.which", return_value=None)
-    def test_cleanup_without_minikube_and_no_clean(self, mock_which):
+    @patch.object(MinikubeManager, "stop_minikube")
+    def test_init_with_stop(self, mock_stop):
+        MinikubeManager(stop=True)
+        mock_stop.assert_called_once()
+
+    @patch.object(MinikubeManager, "start_minikube")
+    @patch.object(MinikubeManager, "stop_minikube")
+    def test_init_with_restart(self, mock_stop, mock_start):
+        MinikubeManager(restart=True)
+        mock_stop.assert_called_once()
+        mock_start.assert_called_once()
+
+    @patch.object(MinikubeManager, "build_docker_image")
+    def test_init_with_build_only(self, mock_build):
+        MinikubeManager(build_only=True)
+        mock_build.assert_called_once()
+
+    @patch.object(MinikubeManager, "create_kube_config_inline")
+    def test_init_with_create_config_only(self, mock_cfg):
+        MinikubeManager(create_config_only=True)
+        mock_cfg.assert_called_once()
+
+    @patch.object(MinikubeManager, "error")
+    def test_run_with_exception_calls_error(self, mock_error):
+        with patch("subprocess.check_call", side_effect=subprocess.CalledProcessError(1, ["fake"])):
+            self.manager.run(["fake"], "Failed!")
+            mock_error.assert_called_once_with("Failed!")
+
+    def test_error_calls_sys_exit(self):
+        with self.assertRaises(SystemExit) as cm:
+            self.manager.error("fail msg")
+        self.assertEqual(cm.exception.code, 1)
+
+    @patch("sys.argv", ["minikube_manager.py", "--start"])
+    @patch.object(MinikubeManager, "__init__", return_value=None)
+    def test_main_with_start_flag(self, mock_init):
+        main()
+        mock_init.assert_called_once()
+        self.assertTrue(mock_init.call_args.kwargs["start"])
+
+    @patch("sys.argv", ["minikube_manager.py", "--build-only"])
+    @patch.object(MinikubeManager, "__init__", return_value=None)
+    def test_main_with_build_only_flag(self, mock_init):
+        main()
+        mock_init.assert_called_once()
+        self.assertTrue(mock_init.call_args.kwargs["build_only"])
+
+    @patch('subprocess.check_call')
+    def test_run_success(self, mock_check_call):
+        manager = MinikubeManager()
+        mock_check_call.return_value = 0
+        manager.run(["echo", "hello"], "Error executing command")
+        mock_check_call.assert_called_with(["echo", "hello"], env=None)
+
+    @patch('subprocess.check_call')
+    def test_run_error(self, mock_check_call):
+        manager = MinikubeManager()
+        mock_check_call.side_effect = subprocess.CalledProcessError(1, "echo")
         with self.assertRaises(SystemExit):
-            self.manager.cleanup()
+            manager.run(["echo", "hello"], "Error executing command")
 
-    @patch("os.path.exists", return_value=True)
-    @patch("subprocess.check_call")
-    def test_build_docker_image(self, mock_check_call, mock_exists):
-        self.manager.build_docker_image()
-        mock_check_call.assert_called_with(["docker", "build", "-t", self.manager.docker_image_name, "."])
+    @patch('subprocess.check_call')
+    @patch('subprocess.run')
+    def test_start(self, mock_subprocess_run, mock_check_call):
+        manager = MinikubeManager()
 
-    @patch("os.path.exists", return_value=False)
-    def test_build_docker_image_no_dockerfile(self, mock_exists):
-        with self.assertRaises(SystemExit):
-            self.manager.build_docker_image()
+        mock_check_call.return_value = None
+        mock_subprocess_run.return_value.returncode = 0
 
-    @patch.object(MinikubeManager, "log")
-    @patch("subprocess.run", return_value=unittest.mock.Mock(returncode=0))
-    def test_create_secrets_already_exists(self, mock_run, mock_log):
-        self.manager.create_secrets(secret_name="my-minio-creds",
-                    secret_data={
-                        "AWS_ACCESS_KEY_ID": "minio",
-                        "AWS_SECRET_ACCESS_KEY": "minio123"
-                    })
-        mock_log.assert_any_call("Secret [my-minio-creds] already exists. Skipping creation.")
+        with patch.object(manager, 'start_minikube') as mock_start_minikube, \
+                patch.object(manager, 'build_docker_image') as mock_build_docker_image, \
+                patch.object(manager, 'create_kube_config_inline') as mock_create_kube_config_inline, \
+                patch.object(manager, 'create_secrets') as mock_create_secrets:
+            manager.start()
 
-    @patch.object(MinikubeManager, "log")
-    @patch("subprocess.run", return_value=unittest.mock.Mock(returncode=1))
-    @patch("subprocess.check_call")
-    def test_create_secrets_new(self, mock_check_call, mock_run, mock_log):
-        self.manager.create_secrets(secret_name="my-minio-creds",
-                    secret_data={
-                        "AWS_ACCESS_KEY_ID": "minio",
-                        "AWS_SECRET_ACCESS_KEY": "minio123"
-                    })
-        mock_check_call.assert_called_with([
-            "minikube", "kubectl", "-p", "airflow", "--",
-            "create", "secret", "generic", "my-minio-creds",
-            "--from-literal=AWS_ACCESS_KEY_ID=minio",
-            "--from-literal=AWS_SECRET_ACCESS_KEY=minio123"
-        ])
-        print(mock_log.call_args)
-        mock_log.assert_any_call("Creating secret [my-minio-creds]...")
+            mock_start_minikube.assert_called_once()
+            mock_build_docker_image.assert_called_once()
+            mock_create_kube_config_inline.assert_called_once()
+            mock_create_secrets.assert_called_once_with(
+                secret_name="my-minio-creds",
+                secret_data={
+                    "AWS_ACCESS_KEY_ID": "minio",
+                    "AWS_SECRET_ACCESS_KEY": "minio123",
+                }
+            )
 
-    @patch("builtins.open", new_callable=mock_open)
-    @patch("os.path.exists", return_value=True)
-    @patch("subprocess.check_call")
-    @patch.object(MinikubeManager, "log")
-    def test_create_kube_config_inline(
-        self, mock_log, mock_subprocess, mock_exists, mock_file
-    ):
-        self.manager.create_kube_config_inline()
-        test_filename = "kube_config_inline"
-        mock_file.assert_called_once_with(test_filename, "w")
-        mock_subprocess.assert_called_once_with(
-            [
-                "minikube",
-                "kubectl",
-                "--",
-                "config",
-                "view",
-                "--flatten",
-                "--minify",
-                "--raw",
-            ],
-            stdout=mock_file(),
+    @patch('subprocess.run')
+    def test_start_minikube_already_running(self, mock_subprocess_run):
+        mock_subprocess_run.return_value.stdout = b"Running"
+        manager = MinikubeManager()
+        with patch.object(manager, 'run') as mock_run:
+            manager.start_minikube()
+            mock_run.assert_not_called()
+
+    @patch('subprocess.run')
+    def test_start_minikube_not_running(self, mock_subprocess_run):
+        mock_subprocess_run.return_value.stdout = b"Minikube cluster 'airflow' is stopped"
+        manager = MinikubeManager()
+        with patch.object(manager, 'run') as mock_run:
+            manager.start_minikube()
+            mock_run.assert_called_with(
+                [
+                    "minikube", "start", "--profile", manager.minikube_profile,
+                    "--driver=docker", "--cpus=4", "--memory=4g"
+                ],
+                "Error starting minikube profile [airflow]"
+            )
+
+    @patch('subprocess.check_call')
+    def test_stop_minikube(self, mock_check_call):
+        manager = MinikubeManager()
+        manager.stop_minikube()
+        mock_check_call.assert_called_with(
+            ["minikube", "stop", "--profile", manager.minikube_profile],
+            env=ANY
         )
 
-        mock_log.assert_any_call("Creating kube config inline file...")
-        mock_log.assert_any_call(
-            f"Created kube config inline file {test_filename}"
+    @patch('subprocess.run')
+    @patch('subprocess.check_call')
+    def test_build_docker_image(self, mock_check_call, mock_subprocess_run):
+        manager = MinikubeManager()
+        mock_subprocess_run.return_value.stdout = b"export DOCKER_TLS_VERIFY=\"1\"\nexport DOCKER_HOST=\"tcp://127.0.0.1:2376\""
+        manager.build_docker_image()
+        mock_check_call.assert_called_with(
+            ["docker", "build", "-t", manager.docker_image_name, "."],
+            env=ANY
+        )
+
+    @patch('subprocess.check_call')
+    @patch('subprocess.check_output')
+    def test_create_kube_config_inline(self, mock_check_output, mock_check_call):
+        manager = MinikubeManager()
+        mock_check_output.return_value = b"minikube kubeconfig"
+        with patch('pathlib.Path.home', return_value=Path("C:/Users/test")):
+            with patch('builtins.open', mock_open(read_data='{"dummy config"}')):
+                manager.create_kube_config_inline()
+        mock_check_call.assert_called_with(
+            [
+                "minikube", "kubectl", "--", "config", "view", "--flatten", "--minify", "--raw"
+            ],
+            stdout=ANY
         )

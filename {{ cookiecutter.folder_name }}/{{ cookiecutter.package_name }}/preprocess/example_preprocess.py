@@ -16,7 +16,7 @@ from {{ cookiecutter.package_name }}.dataloader.example_data import (
 load_dotenv()
 
 s3 = get_s3_client(
-    endpoint_url=os.getenv("S3_ENDPOINT_URL"),
+    endpoint_url=os.getenv("MLFLOW_S3_ENDPOINT_URL"),
     access_key=os.getenv("AWS_ACCESS_KEY_ID"),
     secret_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
 )
@@ -75,7 +75,8 @@ def save_data(
     return object_path, bucket_name
 
 
-def example_preprocess():
+def example_preprocess(dummy_arg: str):
+    print("Called with dummy_arg:::", dummy_arg)
     # For training data
     (X_train, y_train), (X_test, y_test) = load_raw_data()
 
@@ -98,6 +99,17 @@ def example_preprocess():
     # `example_train` depends on this task and expects these two arguments.
     return {"preprocessed_path": stored_path, "bucket_name": bucket_name}
 
+def preprocess_single_sample(sample: np.ndarray):
+    """
+    Preprocess a single input sample
+
+    Args:
+        sample: Single input image of shape (28, 28)
+
+    Returns:
+        Preprocessed sample of shape (1, 28, 28, 1)
+    """
+    return feature_engineering(sample, is_single_input=True)
 
 if __name__ == "__main__":
     example_preprocess()

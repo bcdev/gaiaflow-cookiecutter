@@ -7,9 +7,9 @@
 
 from typing import Any
 
-# import mlflow
+import mlflow
 
-# from {{ cookiecutter.package_name }}.model_pipeline.change_me_model_pipeline import ModelPipelineModel
+from {{ cookiecutter.package_name }}.model_pipeline.change_me_model_pipeline import ModelPipelineModel
 from {{ cookiecutter.package_name }}.dataloader.change_me_data import load_preprocessed_data
 from {{cookiecutter.package_name}}.models.change_me_model import get_model
 
@@ -81,17 +81,20 @@ class Trainer:
         #     extra_pip_requirements=["boto3"]
         # )
         print("Model training and evaluation complete!")
+        return "path-to-best-model"
 
 
-def train(preprocessed_path: str):
+def train(preprocessed_path: str, bucket_name: str):
     # Modify this path to point to the preprocessed data file
-    train_data, test_data = load_preprocessed_data(preprocessed_path)
+    train_data, test_data = load_preprocessed_data(preprocessed_path, bucket_name)
     model = get_model()
     hyperparams = {}
     trained_model_path = "path/to/save/your/model"
     trainer = Trainer(model, train_data, test_data, hyperparams,
                       trained_model_path)
     trainer.train()
+    model_uri = trainer.train()
+    return {"model_uri": model_uri}
 
 if __name__ == "__main__":
     # If you want to run this locally, please run these commands first:

@@ -11,9 +11,9 @@ def load_raw_data(path: str):
     print("Raw data loaded from", path)
 
 
-def load_preprocessed_data(path: str):
+def load_preprocessed_data(path: str, bucket: str):
     """
     Function to load the preprocessed dataset.
     """
-    print("Preprocessed data loaded from", path)
+    print(f"Preprocessed data loaded from {path} and bucket {bucket}")
     return "", ""

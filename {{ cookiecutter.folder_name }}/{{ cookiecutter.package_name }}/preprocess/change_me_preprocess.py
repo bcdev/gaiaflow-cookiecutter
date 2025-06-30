@@ -75,7 +75,7 @@ def preprocess(path: str):
     save_data(data, path)
 
     print("Preprocessing complete!")
-    return {"preprocessed_path": path}
+    return {"preprocessed_path": path, 'bucket_name': "my-bucket"}
 
 
 if __name__ == "__main__":

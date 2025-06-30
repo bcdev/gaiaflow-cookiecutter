@@ -57,6 +57,10 @@ class MnistTrainer:
         keys, values = zip(*self.hyperparams.items())
         param_combinations = [dict(zip(keys, v)) for v in itertools.product(*values)]
         mlflow.autolog()
+
+        # Input shape that this model expects at predict() time
+        input_example = np.random.randint(0, 256, (28, 28, 1), dtype=np.uint8)
+
         with mlflow.start_run(run_name="mnist-hyperparameter-tuning-parent"):
             for params in param_combinations:
                 with mlflow.start_run(nested=True) as child_run:
@@ -120,7 +124,14 @@ class MnistTrainer:
                     # needed
                     # See here for more details:
                     # https://mlflow.org/docs/latest/python_api/mlflow.pyfunc.html#mlflow.pyfunc.log_model
-                    extra_pip_requirements=["boto3"]
+                    extra_pip_requirements=["boto3"],
+                    # MLflow automatically:
+                    # Infers the signature from your input example
+                    # Validates the model works with the example
+                    # Stores both signature and example with your model
+                    # Input examples provide crucial benefits: Read more here
+                    # https://mlflow.org/docs/latest/ml/model/signatures
+                    input_example=input_example
                 )
 
             model_uri = f"runs:/{best_run_id}/{artifact_path}"

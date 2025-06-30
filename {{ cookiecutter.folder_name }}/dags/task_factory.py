@@ -6,15 +6,15 @@ from kubernetes.client import V1EnvFromSource, V1SecretReference
 
 
 def task_factory(
-    task_id: str,
-    func_path: str,
-    func_kwargs: dict = None,
-    image: str = None,
-    env: str = "dev",
-    xcom_push: bool = True,
-    xcom_pull_tasks: dict = None,
-    secrets: list = None,
-    env_vars: dict = None,
+        task_id: str,
+        func_path: str,
+        func_kwargs: dict = None,
+        image: str = None,
+        env: str = "dev",
+        xcom_push: bool = True,
+        xcom_pull_tasks: dict = None,
+        secrets: list = None,
+        env_vars: dict = None,
 ):
     if func_kwargs is None:
         func_kwargs = {}
@@ -28,7 +28,7 @@ def task_factory(
         full_kwargs["xcom_pull_tasks"] = xcom_pull_tasks
 
     if env == "dev":
-        from frijun.runner import run
+        from please_work.runner import run
         return PythonOperator(
             task_id=task_id,
             python_callable=run,
@@ -38,7 +38,7 @@ def task_factory(
     elif env == "prod" or env == "prod_local":
         if not image:
             raise ValueError(f"Docker image expected when in {env} mode")
-        if env  == "prod_local":
+        if env == "prod_local":
             in_cluster = False
         else:
             in_cluster = True
@@ -54,18 +54,18 @@ def task_factory(
             source_task = pull_config["task"]
             key = pull_config.get("key", "return_value")
             xcom_pull_results[source_task] = (
-                    {% raw %}
-                "{{ ti.xcom_pull(task_ids='" + source_task + "', key='" + key + "') }}"
-                    {% endraw %}
+
+                    "{{ ti.xcom_pull(task_ids='" + source_task + "', key='" + key + "') }}"
+
             )
 
         default_env_vars = {
-                "FUNC_PATH": func_path,
-                "FUNC_KWARGS": json.dumps(func_kwargs),
-                "XCOM_PULL_TASKS": json.dumps(xcom_pull_tasks or {}),
-                "XCOM_PULL_RESULTS": json.dumps(xcom_pull_results),
-                "ENV": "prod",
-            }
+            "FUNC_PATH": func_path,
+            "FUNC_KWARGS": json.dumps(func_kwargs),
+            "XCOM_PULL_TASKS": json.dumps(xcom_pull_tasks or {}),
+            "XCOM_PULL_RESULTS": json.dumps(xcom_pull_results),
+            "ENV": "prod",
+        }
 
         if env_vars:
             env_vars.update(default_env_vars)
@@ -74,7 +74,7 @@ def task_factory(
             task_id=task_id,
             name=task_id,
             image=image,
-            cmds=["python", "-m", "{{ cookiecutter.package_name }}.runner"],
+            cmds=["python", "-m", "please_work.runner"],
             env_vars=env_vars,
             env_from=env_from,
             get_logs=True,

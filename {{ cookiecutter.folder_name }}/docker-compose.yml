@@ -23,6 +23,11 @@ x-airflow-common:
     - ./logs:/opt/airflow/logs
     - ./data:/opt/airflow/data
     - ./{{ cookiecutter.package_name }}:/opt/airflow/{{ cookiecutter.package_name }}
+    - ./.env:/opt/airflow/.env
+    - ./kube_config_inline:/home/airflow/.kube/config
+
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
 
   depends_on:
     &airflow-common-depends-on
@@ -126,18 +131,19 @@ services:
   airflow-init:
     container_name: airflow-init
     <<: *airflow-common
-    command: >
-      bash -c "
-      airflow db init &&
-      airflow db migrate &&
-      airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.org
-      "
+    command:
+      - "bash"
+      - "-c"
+      - |
+        airflow db init &&
+        airflow db migrate &&
+        airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.org
     restart: no
 
   minio:
     restart: always
     image: minio/minio
-    container_name: mlflow_s3
+    container_name: minio
     ports:
         - "9000:9000"
         - "9001:9001"
