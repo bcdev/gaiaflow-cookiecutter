@@ -1,7 +1,6 @@
 # Hi, I am Model Prediction Script Template.
 # Please update me in the required places.
 
-import os
 import mlflow
 from dotenv import load_dotenv
 

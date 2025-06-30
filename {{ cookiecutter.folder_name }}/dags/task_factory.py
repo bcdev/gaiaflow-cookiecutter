@@ -15,6 +15,7 @@ def task_factory(
         xcom_pull_tasks: dict = None,
         secrets: list = None,
         env_vars: dict = None,
+        retries: int = 3,
 ):
     if func_kwargs is None:
         func_kwargs = {}
@@ -28,12 +29,13 @@ def task_factory(
         full_kwargs["xcom_pull_tasks"] = xcom_pull_tasks
 
     if env == "dev":
-        from please_work.runner import run
+        from {{ cookiecutter.package_name }}.runner import run
         return PythonOperator(
             task_id=task_id,
             python_callable=run,
             op_kwargs=full_kwargs,
             do_xcom_push=xcom_push,
+            retries=retries
         )
     elif env == "prod" or env == "prod_local":
         if not image:
@@ -54,9 +56,9 @@ def task_factory(
             source_task = pull_config["task"]
             key = pull_config.get("key", "return_value")
             xcom_pull_results[source_task] = (
-
+                    {% raw %}
                     "{{ ti.xcom_pull(task_ids='" + source_task + "', key='" + key + "') }}"
-
+                    {% endraw %}
             )
 
         default_env_vars = {
@@ -74,7 +76,7 @@ def task_factory(
             task_id=task_id,
             name=task_id,
             image=image,
-            cmds=["python", "-m", "please_work.runner"],
+            cmds=["python", "-m", "{{ cookiecutter.package_name }}.runner"],
             env_vars=env_vars,
             env_from=env_from,
             get_logs=True,
@@ -82,6 +84,7 @@ def task_factory(
             log_events_on_failure=True,
             in_cluster=in_cluster,
             do_xcom_push=xcom_push,
+            retries=retries
         )
 
     else:

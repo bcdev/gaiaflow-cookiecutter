@@ -58,7 +58,7 @@ def preprocess(path: str):
     """
     General preprocessing pipeline. Includes loading, cleaning, and feature engineering.
 
-    Make sure that your function can handle both single and batch of data if
+    Make sure that your function can handle both single` and batch of data if
     you would also like to perform these preprocessing steps before the
     predictions.
 
@@ -76,9 +76,3 @@ def preprocess(path: str):
 
     print("Preprocessing complete!")
     return {"preprocessed_path": path, 'bucket_name': "my-bucket"}
-
-
-if __name__ == "__main__":
-    # Modify the file path here to the location of your data file
-    file_path = "path/to/your/data.file"
-    processed_data = preprocess(file_path)

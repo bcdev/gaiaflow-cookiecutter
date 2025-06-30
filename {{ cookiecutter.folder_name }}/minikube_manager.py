@@ -145,10 +145,11 @@ class MinikubeManager:
         with open("kube_config_inline", "r") as f:
             kube_config_data = yaml.safe_load(f)
 
-        for cluster in kube_config_data.get("clusters", []):
-            cluster_data = cluster.get("cluster", {})
-            if "insecure-skip-tls-verify" not in cluster_data:
-                cluster_data["insecure-skip-tls-verify"] = True
+        if self.os_type == "windows":
+            for cluster in kube_config_data.get("clusters", []):
+                cluster_data = cluster.get("cluster", {})
+                if "insecure-skip-tls-verify" not in cluster_data:
+                    cluster_data["insecure-skip-tls-verify"] = True
 
         self.log(f"Saving kube config inline file {filename}")
         with open("kube_config_inline", "w") as f:

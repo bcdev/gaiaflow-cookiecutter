@@ -24,7 +24,7 @@ def test_dag_in_detail(dag_id, dag):
             f"DAG '{dag_id}' has no schedule_interval."
         )
     except AssertionError:
-        logging.warn(f"DAG '{dag_id}' has no schedule_interval.")
+        logging.warning(f"DAG '{dag_id}' has no schedule_interval.")
     assert len(dag.tasks) > 0, f"DAG '{dag_id}' has no tasks."
 
     task_ids = [task.task_id for task in dag.tasks]
@@ -33,7 +33,5 @@ def test_dag_in_detail(dag_id, dag):
     )
 
     for task in dag.tasks:
-        assert 'owner' in task.owner, f"Task '{task.task_id}' in DAG '{dag_id}' has no owner."
-
-    for task in dag.tasks:
         assert task.retries is not None, f"Task '{task.task_id}' in DAG '{dag_id}' has no retries set."
+        assert task.retries > 2, f"Task '{task.task_id}' in DAG '{dag_id}' has retries <= 2."

@@ -110,6 +110,3 @@ def preprocess_single_sample(sample: np.ndarray):
         Preprocessed sample of shape (1, 28, 28, 1)
     """
     return feature_engineering(sample, is_single_input=True)
-
-if __name__ == "__main__":
-    example_preprocess()

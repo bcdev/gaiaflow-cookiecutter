@@ -14,7 +14,7 @@ x-airflow-common:
     AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
     MLFLOW_S3_ENDPOINT_URL: http://minio:${MINIO_PORT}
     PYTHONPATH: /opt/airflow/{{ cookiecutter.package_name }}:/opt/airflow/dags:${PYTHONPATH}
-    PATH: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.folder_name }}/bin:${PATH}
+    PATH: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.folder_name }}/bin:/usr/bin:/bin:${PATH}
     LD_LIBRARY_PATH: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.folder_name }}/lib:/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
     AIRFLOW__CORE__DEFAULT_PYTHON_INTERPRETER: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.folder_name }}/bin/python
     PYTHONNOUSERSITE: 1
@@ -36,6 +36,7 @@ x-airflow-common:
 
   networks:
     - ml-network
+    - minikube-external-network
 
 services:
 
@@ -180,6 +181,10 @@ services:
 networks:
   ml-network:
     driver: bridge
+
+  minikube-external-network:
+    external: true
+    name: airflow
 
 volumes:
     postgres-db-volume-mlflow:

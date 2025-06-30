@@ -1,6 +1,6 @@
 # Hi, I am the python file that you need to update when you are ready to create
 # the dags using the task factory. This step is usually done
-# when you have your package ready in your please_work package.
+# when you have your package ready in your `{{ cookiecutter.package_name }}` package.
 
 # NOTE: Please delete all these comments once you have understood how to use me.
 
@@ -24,7 +24,7 @@ from task_factory import task_factory
 # https://github.com/bcdev/gaiaflow/issues
 
 # Define the environment here. It can either be `dev`, `prod` or `prod_local`.
-ENVIRONMENT = "prod_local"
+ENVIRONMENT = "dev"
 
 # TODO (User Action Required):
 # Please look for change me's below and update them as needed.
@@ -86,7 +86,7 @@ with DAG(
     description="change your description here",
     schedule_interval="0 0 * * *",
     catchup=False,
-    tags=["task_factory_dag", "please_work"]
+    tags=["task_factory_dag", "{{ cookiecutter.package_name }}", ENVIRONMENT]
 ) as dag:
 
     # A task group logically/visually encapsulates a bunch of tasks in it. You don't HAVE to use
@@ -98,7 +98,7 @@ with DAG(
             task_id="preprocess_data",
             # This argument expects the path to your function that you want
             # to execute. It should be available in the  __init__.py of your package.
-            func_path="please_work.preprocess",
+            func_path="{{ cookiecutter.package_name }}.preprocess",
             # This argument expects that you provide all the arguments that your
             # function as defined in `func_path` expects.
             # If your function depends on another function (from a different task), you should use
@@ -137,7 +137,7 @@ with DAG(
 
         train = task_factory(
             task_id="train",
-            func_path="please_work.train",
+            func_path="{{ cookiecutter.package_name }}.train",
             xcom_pull_tasks={
                 "preprocessed_path": {
                     "task": "change_group_id.preprocess_data",
@@ -166,7 +166,7 @@ with DAG(
                    tooltip="Change what appears in the tooltip 2") as predictor:
         predict = task_factory(
             task_id="predict",
-            func_path="please_work.predict",
+            func_path="{{ cookiecutter.package_name }}.predict",
             # Pull model_uri output from the train task
             xcom_pull_tasks={
                 "model_uri": {

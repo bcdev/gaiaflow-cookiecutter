@@ -11,13 +11,13 @@ from dotenv import load_dotenv
 os.environ["KERAS_BACKEND"] = "tensorflow"
 import keras
 
-from frijun.model_pipeline.example_model_pipeline import (
+from {{ cookiecutter.package_name }}.model_pipeline.example_model_pipeline import (
     ModelPipelineModel)
-from frijun.utils.utils import (
+from {{ cookiecutter.package_name }}.utils.utils import (
     get_or_create_experiment
 )
-from frijun.models.example_model import get_model
-from frijun.dataloader.example_data import load_preprocessed_data
+from {{ cookiecutter.package_name }}.models.example_model import get_model
+from {{ cookiecutter.package_name }}.dataloader.example_data import load_preprocessed_data
 
 load_dotenv()
 
@@ -140,8 +140,8 @@ class MnistTrainer:
             print("Best model params: ", best_params)
             print("Model stored at ", model_uri)
 
-        print("Training complete. Model logged in MLflow.")
-        return {"model_uri": model_uri}
+            print("Training complete. Model logged in MLflow.")
+            return {"model_uri": model_uri}
 
 
 def example_train(preprocessed_path: str, bucket_name: str):

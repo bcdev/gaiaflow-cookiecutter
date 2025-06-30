@@ -140,6 +140,8 @@ class MlopsManager:
         else:
             self.docker_compose_action(["up", "-d"], service=self.service)
 
+        self.log("MLOps service started!")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Gaiaflow: MLOps Environment Launcher")

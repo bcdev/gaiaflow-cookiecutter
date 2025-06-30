@@ -5,7 +5,6 @@
 
 from typing import Any
 
-
 def postprocess(data: Any):
     """
     Add your postprocess stuff here.
@@ -15,7 +14,3 @@ def postprocess(data: Any):
     """
     # TODO: Implement postprocessing
     return data
-
-
-if __name__ == "__main__":
-    postprocessed_predictions = postprocess("some_data")

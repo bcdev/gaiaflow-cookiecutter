@@ -9,7 +9,7 @@ from airflow.utils.task_group import TaskGroup
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from task_factory import task_factory
 
-ENVIRONMENT = "prod_local" # can be one of ("dev", "prod_local", "prod")
+ENVIRONMENT = "dev" # can be one of ("dev", "prod_local", "prod")
 
 # TODO (User Action Required):
 # This dag example currently works in the `dev` environment.
@@ -37,7 +37,7 @@ ENVIRONMENT = "prod_local" # can be one of ("dev", "prod_local", "prod")
 #    - The gateway is "host.docker.internal" for Windows.
 #
 # 3. Make sure you update `ENVIRONMENT='prod_local'`
-MINIKUBE_GATEWAY = "host.docker.internal"
+MINIKUBE_GATEWAY = "<YOUR_MINIKUBE_GATEWAY_IP>"
 
 
 default_args = {
@@ -52,17 +52,21 @@ with DAG(
     schedule_interval=None,
     description="Example Dag",
     catchup=False,
-    tags=["task_factory", "please_work", "DO_NOT_TRIGGER_IN_PROD", ENVIRONMENT]
+    tags=["task_factory", "{{ cookiecutter.package_name }}", ENVIRONMENT]
 ) as dag:
 
     with TaskGroup(group_id="Trainer",
                    tooltip="Preprocesses and train Mnist Model") as trainer:
         preprocess_data = task_factory(
             task_id="preprocess_data",
-            func_path="please_work.example_preprocess",
+            func_path="{{ cookiecutter.package_name }}.example_preprocess",
             func_kwargs={"dummy_arg": "hello world"},
 
-            image="my-local-image/my-package:0.0.1",
+            # For prod_local and prod mode only
+            # When you run the ./prod_local_setup.sh as shown above, it will also
+            # create a docker image from your package with your environment.yml.
+            # Please put the image name below
+            image="<your-image-name>",
             secrets=["my-minio-creds"],
             env_vars={
                 "MLFLOW_TRACKING_URI": f"http://{MINIKUBE_GATEWAY}:5000",
@@ -75,7 +79,7 @@ with DAG(
 
         train = task_factory(
             task_id="train",
-            func_path="please_work.example_train",
+            func_path="{{ cookiecutter.package_name }}.example_train",
             # Pull outputs from preprocess_data as inputs
             xcom_pull_tasks={
                 "preprocessed_path": {
@@ -88,7 +92,7 @@ with DAG(
                 },
             },
 
-            image="my-local-image/my-package:0.0.1",
+            image="<your-image-name>",
             secrets=["my-minio-creds"],
             env_vars={
                 "MLFLOW_TRACKING_URI": f"http://{MINIKUBE_GATEWAY}:5000",
@@ -104,7 +108,7 @@ with DAG(
                    tooltip="Predict from Mnist Model") as predictor:
         predict = task_factory(
             task_id="predict",
-            func_path="please_work.example_predict",
+            func_path="{{ cookiecutter.package_name }}.example_predict",
             # Pull model_uri output from the train task
             xcom_pull_tasks={
                 "model_uri": {
@@ -112,7 +116,7 @@ with DAG(
                     "key": "return_value",
                 },
             },
-            image="my-local-image/my-package:0.0.1",
+            image="<your-image-name>",
             secrets=["my-minio-creds"],
             env_vars={
                 "MLFLOW_TRACKING_URI": f"http://{MINIKUBE_GATEWAY}:5000",

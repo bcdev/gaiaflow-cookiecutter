@@ -16,10 +16,10 @@ This documentation is designed to provide an in-depth understanding of the servi
 The Gaiaflow environment includes the following core services:
 
 
-| Service         | Description                                                                                |
-|-----------------|--------------------------------------------------------------------------------------------| 
-| GaiaflowManager | Spins up mlops services for local development                                              |
-| MinikubeManager | Spins up local kuberenetes cluster for testing your dags before pushing them to production | 
+| Service         | Description                                                                                                       |
+|-----------------|-------------------------------------------------------------------------------------------------------------------| 
+| GaiaflowManager | Spins up mlops services for local development                                                                     |
+| MinikubeManager | Spins up local kuberenetes cluster for testing your dags in production-like env before pushing them to production | 
 
 
 
@@ -39,9 +39,6 @@ The Gaiaflow environment includes the following core services:
 |----------|------------------------------| ----------------------- |
 | Minikube | Local lightweight Kubernetes |            |
 
-
-NOTE: These ports work on localhost only when you have started the 
-Gaiaflow services using the `GaiaflowManager`
 
 ## Apache Airflow
 
