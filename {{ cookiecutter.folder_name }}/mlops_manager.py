@@ -1,12 +1,10 @@
 import argparse
 import os
-import signal
 import socket
 import subprocess
 import sys
 from datetime import datetime
 import psutil
-import platform
 
 
 class MlopsManager:

@@ -19,7 +19,11 @@ BASE_CONTEXT = {
 }
 
 CORE_FILES = {
-    "mlops-run.sh",
+    "mlops_manager.py",
+    "minikube_manager.py",
+    "kube_config_inline",
+    "utils.py",
+    "docker_config.py",
     "docker-compose.yml",
     "README.md",
     ".env",
@@ -55,11 +59,11 @@ CORE_FILES = {
 }
 
 MANUAL_DAGS_FILES = [
-    "dags/change_me_dag.py",
+    "dags/change_me_task_factory_dag.py",
 ]
 
 EXAMPLE_MANUAL_DAGS_FILES = [
-    "dags/example_dag.py",
+    "dags/example_task_factory_dag.py",
 ]
 
 EXAMPLE_ML_PACKAGE_FILES = [

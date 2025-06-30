@@ -1,15 +1,8 @@
 # Getting Started with Airflow
 
-Hey, welcome!  ✨
+Hey, welcome!
 
 Here, we will learn how to define DAGs using Airflow.
-
-There are two options to create DAGs
-- Using Python
-- Using YAML
-
-And you chose:
-{% if cookiecutter.use_dag_factory == "yes" %}`YAML`{% else %}`Python`{% endif %}
 
 Please use the `change_me_*` files to read the comments and understand how to create
 DAGs.

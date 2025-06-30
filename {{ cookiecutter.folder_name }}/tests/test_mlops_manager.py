@@ -2,11 +2,11 @@ import unittest
 from unittest.mock import patch
 import os
 import shutil
-import sys
 
+import pytest
 from mlops_manager import main as mlops_main, MlopsManager
 
-
+@pytest.mark.gaiaflow
 class TestMlopsManager(unittest.TestCase):
     def setUp(self):
         self.test_dir = "temp_logs"
@@ -158,7 +158,7 @@ class TestMlopsManager(unittest.TestCase):
         self.manager.cache = True
         self.manager.service = "mlflow"
         self.manager.start()
-        mock_check_call.assert_any_call(["docker", "compose", "build"])
+        mock_check_call.assert_any_call(["docker", "compose", "build", "mlflow", "postgres-mlflow", "minio", "minio_client"])
         mock_check_call.assert_any_call(["docker", "compose", "up", "-d", "mlflow", "postgres-mlflow", "minio", "minio_client"])
 
     @patch("subprocess.check_call")
@@ -167,7 +167,7 @@ class TestMlopsManager(unittest.TestCase):
         self.manager.cache = False
         self.manager.service = "mlflow"
         self.manager.start()
-        mock_check_call.assert_any_call(["docker", "compose", "build", "--no-cache"])
+        mock_check_call.assert_any_call(["docker", "compose", "build", "--no-cache", "mlflow", "postgres-mlflow", "minio", "minio_client"])
         mock_check_call.assert_any_call(["docker", "compose", "up", "-d", "mlflow", "postgres-mlflow", "minio", "minio_client"])
 
     @patch("sys.argv", ["mlops_manager.py", "--start"])

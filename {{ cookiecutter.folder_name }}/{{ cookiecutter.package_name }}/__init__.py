@@ -14,7 +14,7 @@ from .predict.change_me_predict import predict  # noqa
 {% if cookiecutter.show_examples == "yes" %}
 from .train.example_train import example_train  # noqa
 from .preprocess.example_preprocess import example_preprocess  # noqa
-from .preprocess.example_preprocess import preprocess_single_sample
+from .preprocess.example_preprocess import preprocess_single_sample  # noqa
 from .postprocess.example_postprocess import example_postprocess  # noqa
 from .predict.example_predict import example_predict  # noqa
 {% endif %}

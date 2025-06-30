@@ -13,11 +13,6 @@ dependencies:
   - python-dotenv
   - git
   - fsspec
-  {% if cookiecutter.use_dag_factory == "yes" %}
-  - pip
-  - pip:
-    - dag_factory
-  {% endif %}
   {% if cookiecutter.show_examples == "yes" %}
   # This is only needed for an exmaple. If you dont need this, please feel free to remove it.
   - keras

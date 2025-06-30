@@ -3,7 +3,7 @@
 
 from unittest.mock import MagicMock, patch
 
-import mlflow
+# import mlflow
 
 from {{ cookiecutter.package_name }}.train.change_me_train import Trainer
 

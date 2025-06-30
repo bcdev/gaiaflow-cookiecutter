@@ -189,23 +189,32 @@ with DAG(
 
 # TODO:
 #  [DONE] Update ti.xcom code with simple return dict statements.
-#  [NOT NEEDED] Update the cookiecutter so that it allows using Airflow standalone (without
+#  [DONE] Update the cookiecutter so that it allows using Airflow standalone (
+#  without
 #  MLOps) for projects requiring only Airflow.
 #  Make ECR work. How to add credentials?
-#  Make sure task factory works out of the box when new projects are created.
-#  Add tests for Airflow dags.
-#  Update the documentation stating that we should only return simple objects from the
+#  [DONE]Make sure task factory works out of the box when new projects are
+#  created.
+#  [DONE]Add tests for Airflow dags.
+#  [DONE]Update the documentation stating that we should only return simple
+#  objects from the
 #  main function that airflow needs to execute.
-#  Update documentation providing best practices while working with Docker (
+#  [DONE]Update documentation providing best practices while working with
+#  Docker (
 #  cleanup images on registry, local etc.)
 #  S3 credentials access?
 #  Add sensor based DAGs
 #  [DONE] Add version.py in package
 #  [DONE] Improve change_me_train.py and other files.
-#  Make sure dag_factory works in prod env
 #  Make CI unittest using conda instead
 #  Update CI to use ECR credentials.
 #  Run ruff, isort.
-#  Update documentation also including, restarting airflow service after env update. now possible using --restart
-#  after starting prod, restart airflow containers.
-#  on windows, run pytest --ignore=logs and before that run set AIRFLOW_CONFIG=%cd%\airflow_test.cfg
+#  [done] Update documentation also including, restarting airflow service after
+#  env update. now possible using --restart
+#  [done] after starting prod, restart airflow containers.
+#  [done] on windows, run pytest --ignore=logs and before that run set
+#  [done] AIRFLOW_CONFIG=%cd%\airflow_test.cfg
+#  check jupyter notebooks if they work to be sure.
+#  add task_factory tutorial
+#  write up about the architecture
+#  check all files and readmes once more.

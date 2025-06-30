@@ -1,11 +1,12 @@
 import unittest
-from unittest.mock import patch, mock_open, call, ANY
-import sys
+from unittest.mock import patch, mock_open, ANY
 import subprocess
+
+import pytest
 from minikube_manager import MinikubeManager, main
 from pathlib import Path
 
-
+@pytest.mark.gaiaflow
 class TestMinikubeManager(unittest.TestCase):
 
     def setUp(self):

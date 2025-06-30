@@ -74,6 +74,8 @@ class MinikubeManager:
             f"Error starting minikube profile [{self.minikube_profile}]"
         )
 
+        self.create_kube_config_inline()
+
     def stop_minikube(self):
         self.log(f"Stopping minikube profile [{self.minikube_profile}]...")
         self.run(["minikube", "stop", "--profile", self.minikube_profile],

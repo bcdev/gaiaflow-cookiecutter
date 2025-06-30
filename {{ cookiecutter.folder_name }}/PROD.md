@@ -115,22 +115,6 @@ To do so:
    dispatch an event to the CDR to let it know you are re
 
 
-After starting minkube manager
-restart gaiaflow manager
-
-
-windows:
-change kube config - host.docker.internal
-create inline config
-revert kube config before generating the secret
-
-
-minikube gateway is host.docker.internal also in windows!!
-
-make manager scripts more useful
-write method to change kube config
-close jupyter in a better way
-
 After making changes, they will appear fine in dev mode, 
 but in prod_local mode, you have create the image using the minikube manager
 

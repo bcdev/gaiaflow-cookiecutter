@@ -1,7 +1,7 @@
 import os
 
-with open(os.path.join(os.path.dirname(__file__), {{ cookiecutter.package_name
-                                                    }}, "version.py")) as f:
+with open(os.path.join(os.path.dirname(__file__), "{{ cookiecutter.package_name
+                                                    }}", "version.py")) as f:
     __version__ = f.read().strip().split('"')[1]
 
 

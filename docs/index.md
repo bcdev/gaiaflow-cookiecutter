@@ -1,11 +1,7 @@
 # GaiaFlow MLOps Project Template
 
-<div style="text-align: right;">
-  <figure style="display: inline-flex; align-items: center;">
-    <img src="assets/gaiaflow.png" alt="Logo">
-  </figure>
-</div>
 
+![](assets/gaiaflow.png)
 
 
 Welcome to GaiaFlow — an MLOps project template designed to streamline Earth Observation machine learning projects with best practices and automation.
@@ -38,7 +34,7 @@ It integrates essential tools for modern MLOps pipelines:
 
 ## Who is this for?
 
-- Data scientists and ML engineers working on Earth Observation projects.
+- Data scientists working on Earth Observation projects.
 - Teams wanting to implement standardized and repeatable ML workflows.
 
 ---
@@ -67,6 +63,7 @@ Acknowledgments:
 - [MLflow](https://mlflow.org/)
 - [MinIO](https://min.io/)
 - [JupyterLab](https://jupyterlab.readthedocs.io/)
+- [Minikube](https://minikube.sigs.k8s.io/docs/)
 
 ---
 

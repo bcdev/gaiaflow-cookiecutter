@@ -1,26 +1,25 @@
-
-
-## You made it!
-
-Congratulations on making it here! You are on the right track :)
+So you have created a project using Gaiaflow! Great.
 
 Please read or skim this completely before starting your journey.
 
 If you face any issues or have any feedback, please share it with us.
 
+
 ## Project Structure
+
+Once you created the project template, it will contain the following files and folders.
 
 Any files or folders marked with `*` are off-limits—no need to change, modify, 
 or even worry about them. Just focus on the ones without the mark!
 
-Any files or folders marked with `#` can be extended, but carefully.
+Any files or folders marked with `^` can be extended, but carefully.
 ```
 ├── .github/             # GitHub Actions workflows (you are provided with a starter CI)
 ├── dags/                # Airflow DAG definitions 
 │                          (you can either define dags using a config-file (dag-factory)
 │                           or use Python scripts.)
 ├── notebooks/           # JupyterLab notebooks
-├── {{ cookiecutter.package_name}}/                  
+├── your_package/                  
 │   │                     (For new projects, it would be good to follow this standardized folder structure.
 │   │                      You are of course allowed to add anything you like to it.)
 │   ├── dataloader/      # Your Data loading scripts
@@ -32,17 +31,25 @@ Any files or folders marked with `#` can be extended, but carefully.
 │   └── utils/           # Utility functions
 ├── tests/               # Unit and integration tests
 ├── data/                # If you have data locally, move it here and use it so that airflow has access to it.
-├── README.md            # The one you are reading :p. Feel free to update it based on your project.
+├── README.md            # Its a readme. Feel to change it!
+├── CHANGES.md           # You put your changelog for every version here.
 ├── pyproject.toml       # Config file containing your package's build information and its metadata
-├── .env * #             # Your environment variables that docker compose and python scripts can use (already added to .gitignore)
+├── .env * ^             # Your environment variables that docker compose and python scripts can use (already added to .gitignore)
+├── .gitignore * ^       # Files to ignore when pushing to git.
 ├── environment.yml      # Libraries required for local mlops and your project
-├── mlflow-artifacts/ *  # MLflow artifacts (created if you don't choose minio)
-├── mlops_run.sh *       # Shell script to start MLOps services locally 
+├── mlops_manager.py *   # Manager to manage the mlops services locally
+├── minikube_manager.py *# Manager to manage the kubernetes cluster locally 
 ├── docker-compose.yml * # Docker compose that spins up all services locally for MLOps
-└── dockerfiles/ *       # Dockerfiles and compose files
+├── utils.py *           # Utility function to get the minikube gateway IP required for testing.
+├── docker_config.py *   # Utility function to get the docker image name based on your project.
+├── kube_config_inline * # This file is needed for Airflow to communicate with Minikube when testing locally in a prod env.
+├── Dockerfile  ^        # Dockerfile for your package.
+└── dockerfiles/ *       # Dockerfiles required by Docker compose
 ```
 
-In your `{{ cookiecutter.package_name}}` package, you are provided with scripts
+
+
+In your package, you are provided with scripts
 starting with `change_me_*`. Please have a look at the comments in these files
 before starting.
 
@@ -51,10 +58,10 @@ starting with `example_*`. Please have a look at these files to get more info
 and to get started.
 
 
-## Local development
+## Getting Started with MLOps
 
 Now that you have created a project using the template provided, please follow
-the steps below to start your MLOps journey.
+the steps below to start your ML journey.
 
 ### 0. Git Fundamentals. 
 First, we need to initialize a Git repository to make the initial commit.
@@ -106,12 +113,7 @@ shown in the next step.
 
 The following script spins up containers for Airflow, MLFLow, MinIO 
 (if you chose it) and Jupyter Lab (not in a container).
-```bash
-  chmod +x mlops-run.sh
-```
-```bash
-  ./mlops-run.sh -b
-```
+
 The following flags exist which could alter the behaviour of the way the 
 framework runs, but the user should not worry about it or change them if not 
 needed.
@@ -126,21 +128,9 @@ NOTE: When you run this for the first time, make sure you use the `-b` flag as
 it builds the images for the first time as shown above.
 Next time when you start it again, you start it without the flag as it saves 
 time by not building the same images again:
-```bash
-  ./mlops-run.sh
-```
 
-### 3. Stopping the services
 
-You should stop these container services when you're done working 
-with your project, need to free up system resources, or want to apply some 
-updates.
-To gracefully stop the services, run this in the terminal where you started them:
-```bash
-  ctrl + C
-```
-
-### 4. Accessing the services
+### 3. Accessing the services
 
 Wait for the services to start (usually take 2-3 mins, might take longer if you 
 start it without cache)
@@ -157,7 +147,54 @@ start it without cache)
     - password: `minio123`
 
 
-### 5. Cleanup:
+
+### 4. Develop your package
+
+You can use the `mlops_manager.py` to spin up a jupyter lab for you
+to start working on your project.
+
+To do so, run:
+```bash
+python mlops_manager.py --start --service jupyter
+```
+
+Once you are done with creating a rough working software in Jupyter lab,
+head now to your package and start writing a professional software 
+package. Information in terms of comments and README has been provided to aid you in this.
+
+Make sure to write tests often and keep testing your package using
+```bash
+pytest -m "not gaiaflow"
+```
+The above command runs all the tests that you write excluding the tests that are already
+pre-written for the managers. You can of course run those tests too.
+
+While writing your package, please make sure that each function that you intend
+to invoke via a task in an Airflow DAG, accepts and returns small amounts of data
+like strings, numbers and booleans.
+
+While returning, make sure that you return it as a `dict` with keys being
+what the next function in your next task is expecting.
+
+Please have a look at the examples.
+
+### 5. Stopping the services
+
+You should stop these container services when you're done working 
+with your project, need to free up system resources, or want to apply some 
+updates.
+To gracefully stop the services, run this in the terminal where you started them:
+```bash
+  ctrl + c
+```
+
+If current process is running (not terminated but terminal closed), then run:
+
+```bash
+  python -m gaiaflow_mangaer.py --stop
+```
+
+### 6. Cleanup:
 
 When you docker a lot on your local system to build images, it caches the layers
 that it builds and overtime, this takes up a lot of memory. To remove the cache,
@@ -166,7 +203,6 @@ run this:
 ```commandline
   docker builder prune -a -f
 ```
-
 
 ## Development Workflow
 
@@ -202,6 +238,13 @@ check if everything was generated correctly.
 [MLFlow UI](http://localhost:5000).
 8. Once your model is finished training, you can now deploy it either using 
 docker (recommended) or locally as shown in the next section.
+
+## Troubleshooting Tips
+
+- If you get Port already in use, change it with -j or free the port.
+- Use -v to clean up Docker volumes if service states become inconsistent.
+- Logs are saved in the logs/ directory.
+
 
 
 ## Deployment workflow
@@ -379,9 +422,11 @@ tab as shown below
 To maintain stability and consistency, please do not update or modify the 
 following files:
 
-- Dockerfiles
-- mlops-run.sh
-- docker-compose.yml
+- `Dockerfiles`
+- `minikube_manager.py`
+- `mlops_manager.py`
+- `kube_config_inline`
+- `docker-compose.yml`
 
 These files are essential for the proper functioning of the system. If changes 
 are absolutely necessary, please consult the team and document the reasons 
@@ -408,39 +453,11 @@ commit message).
 #### P.S. If you face any issues/errors in any of the steps above, please reach out to us.
 
 
-## Moving to Production <sub><sup>(work in progress)</sup></sub>:
 
-For moving into production, the [Centralized Dag Repository](https://github.com/bcdev/airflow-dags)
-(CDR) must know that you exist and are interested in using the production 
-airflow.
-                  
-To do so, do the following steps (keep in mind they only have to be done once
-per project by any team member of that project)
+----
 
-- Contact the CDR maintainers and ask them to add your repository as a 
-  `submodule` (They will know what to do!)
+Great, you have come to an end of Local development.
 
-- Create a Personal Access Token from your account (make sure your account is a 
-member of the bcdev org for this to work).
+Now, let's head on to testing to make sure that your dags and package
+are ready to be deployed in the production Airflow [here](prod.md)
 
-  Do as follows:
-  - Go to your Github account Settings
-  - Navigate to `<> Developer Settings` (the last button on the page)
-  - Create a `Personal access token (classic)`
-  - See the image below for reference:
-
-  - Only click on the `repo` permissions
-  - Create the token
-  - Copy and keep it safe somewhere (maybe on KeePassXC)
-  - Now, navigate to your newly created project, create a new Secret
-      - Go to Repository settings
-        - Navigate to `Secrets and Variables -> Actions -> New repository secret`
-        - In the `Name` field, insert `CDR_PAT`
-        - In the `Secret` field, insert your token that generated a few moments ago
-      - Click on `Add Secret`  
-
-Now you are ready to deploy your dags to the production Airflow.
-
-Currently, the CI to deploy your dags runs only when you create a new release of 
-your project package. This has been done in order to make sure that each dag
-that goes into production has a release tag to it.

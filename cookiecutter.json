@@ -8,10 +8,6 @@
         "yes",
         "no"
     ],
-    "use_dag_factory": [
-        "yes",
-        "no"
-    ],
     "folder_name": "{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_').replace('.', '_') }}",
     "package_name": "Enter your package name (should be different from folder name, only underscores allowed)"
 }
