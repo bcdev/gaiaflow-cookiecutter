@@ -319,7 +319,7 @@ After this finishes, you can run the docker container by:
 
 Now you have an endpoint ready at `127.0.0.1:5002`.
 
-Have a look at `notebooks/examples/mlflow_inference.ipynb` for an 
+Have a look at `notebooks/examples/mlflow_local_deploy_inference.ipynb` for an 
 example on how to get the predictions.
 
 
@@ -346,7 +346,7 @@ required stuff
     mlflow models serve -m s3://mlflow/0/<run_id>/artifacts/<model_name> -h 0.0.0.0 -p 3333
     ```
 - We can now run inference against this server on the `/invocations` endpoint,
-- Have a look at `notebooks/examples/mlflow_inference.ipynb` for an 
+- Have a look at `notebooks/examples/mlflow_local_deploy_inference.ipynb` for an 
 example on how to get the predictions.
 
 
