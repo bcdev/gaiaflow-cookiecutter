@@ -24,4 +24,5 @@ jobs:
           auto-activate-base: false
 
       - name: Deploy to GitHub Pages
+        shell: bash -l
         run: mkdocs gh-deploy --force
