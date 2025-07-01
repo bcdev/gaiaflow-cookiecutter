@@ -48,7 +48,7 @@ ENVIRONMENT = "dev"
 #
 # 2. Obtain the correct Minikube gateway address:
 #    For Linux users:
-#    - Execute the `docker_network_gateway()` function from the mlops package
+#    - Execute the `docker_network_gateway()` function from the `utils.py` script
 #    to retrieve the Minikube gateway IP.
 #    - This IP is essential for connecting your DAG to local MLOps services
 #    during testing.
@@ -60,7 +60,7 @@ ENVIRONMENT = "dev"
 # 3. Make sure you update `ENVIRONMENT='prod_local'`
 # 4. Run `python minikube_manager.py --build-only` to create your docker image that is
 # accessible by the Minikube cluster.
-MINIKUBE_GATEWAY = "host.docker.internal"
+MINIKUBE_GATEWAY = "<GATEWAY_ADDRESS>"
 
 
 # Define default arguments
@@ -215,6 +215,7 @@ with DAG(
 #  [done] on windows, run pytest --ignore=logs and before that run set
 #  [done] AIRFLOW_CONFIG=%cd%\airflow_test.cfg
 #  check jupyter notebooks if they work to be sure.
-#  add task_factory tutorial
-#  write up about the architecture
-#  check all files and readmes once more.
+#  [DONE] add task_factory tutorial
+#  [DONE] write up about the architecture
+#  [DONE] check all files and readmes once more.
+#  [DONE] update the architecture diagram in main README

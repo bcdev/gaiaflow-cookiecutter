@@ -1,6 +1,6 @@
 # !!PLEASE DO NOT EDIT/DELETE THIS!!
 # This file is the main entry point to your package when using Airflow to
-# create DAGs from the task_factory.
+# run your tasks from your DAGs called from the task_factory.
 # It imports the required function from your package and executes it with the
 # arguments provided
 

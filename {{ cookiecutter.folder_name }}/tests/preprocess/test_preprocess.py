@@ -3,8 +3,8 @@
 
 from unittest.mock import patch
 
-from {{ cookiecutter.package_name }}.preprocess.change_me_preprocess import clean_data, feature_engineering, \
-    preprocess
+from {{cookiecutter.package_name}}.preprocess.change_me_preprocess import (
+    clean_data, feature_engineering, preprocess)
 
 
 def test_clean_data():

@@ -1,7 +1,7 @@
 # Hi, I am a test file. Please update me in the required places after you
 # have updated your package.
 
-from {{ cookiecutter.package_name }} import postprocess
+from {{cookiecutter.package_name}} import postprocess
 
 
 def test_postprocess():

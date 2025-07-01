@@ -1,17 +1,13 @@
 # PLEASE DELETE ME AFTER YOU ARE DONE UNDERSTANDING!!
 
 import os
-
-import numpy as np
 from datetime import datetime
 
+import numpy as np
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
-
-
-from {{ cookiecutter.package_name }}.utils.utils import get_s3_client
-from {{ cookiecutter.package_name }}.dataloader.example_data import (
-    load_raw_data)
+from {{cookiecutter.package_name}}.dataloader.example_data import load_raw_data
+from {{cookiecutter.package_name}}.utils.utils import get_s3_client
 
 load_dotenv()
 

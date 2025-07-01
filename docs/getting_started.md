@@ -7,127 +7,15 @@ by the Gaiaflow framework.
 For first-time users, we recommend that you read/skim through this
 to get an idea of what Gaiaflow can currently offer.
 
-If you would like to start, then [get started here](#getting-started)
+If you would like to start right away, then [get started here](#getting-started)
 
 ---
-
-## Architecture
-
-![](assets/dev.png)
-![](assets/prod_local.png)
-![](assets/prod.png)
-
-The Gaiaflow environment provides a modular, local-first MLOps setup, enabling
-rapid development and production-like testing of Airflow DAGs.
-
-| Service           | Description                                                                                                     |
-|-------------------| --------------------------------------------------------------------------------------------------------------- |
-| `MlopsManager`    | Spins up MLOps services (Airflow, MLflow, etc.) for **local development**.                                      |
-| `MinikubeManager` | Spins up a **local Kubernetes cluster** for **testing DAGs in a production-like environment** before deploying. |
-
-
-### MlopsManager
-
-Manages local MLOps components for day-to-day development and experimentation.
-
-
-| Service     | Description                                | Default Port(s)              |
-| ----------- | ------------------------------------------ | ---------------------------- |
-| **Airflow** | DAG orchestration & scheduling platform    | `8080` (Web UI)              |
-| **MLflow**  | ML lifecycle management (tracking, models) | `5000` (UI & API)            |
-| **MinIO**   | Object storage (S3-compatible)             | `9000` (S3 API), `9001` (UI) |
-
-#### When to Use It
-
-Use Mlops Manager when:
-
-- You are testing Jupyter code with MLFlow/Minio
-- You're iterating on pipeline code after creating your software package.
-- You want to test Airflow DAGs, Jupyter notebooks, or other services locally.
-- You need fast feedback loops before deploying to Minikube or production.
-- You are using `task_factory` in `dev` mode
-
-#### CLI Reference
-
-
-```bash
-python gaiaflow_manager.py [OPTIONS]
-```
-
-| Flag / Option           | Description                                     | Example                     |
-| ----------------------- | ----------------------------------------------- |-----------------------------|
-| `--start`               | Start selected services                         | `--start --service airflow` |
-| `--stop`                | Stop selected services                          | `--stop --service mlflow`   |
-| `--restart`             | Restart selected services                       | `--restart --service airflow`                |
-| `--service`             | Choose service: `airflow`, `mlflow`, `jupyter`  | `--service jupyter`         |
-| `-c`, `--cache`         | Use Docker cache during image builds            | `--start -c`                |
-| `-j`, `--jupyter-port`  | Port to expose Jupyter Notebook (default: 8895) | `--start -j 8896`           |
-| `-v`, `--delete-volume` | Delete Docker volumes on shutdown               | `--stop -v`                 |
-| `-b`, `--docker-build`  | Force rebuild Docker image                      | `--start -b`                |
-
-
-### MinikubeManager
-
-Used to create a lightweight local Kubernetes cluster that simulates production,
-for validating DAGs using KubernetesExecutor or custom pods.
-
-| Component    | Description                           |
-| ------------ | ------------------------------------- |
-| **Minikube** | Local, single-node Kubernetes cluster |
-
-
-#### When to Use It
-
-Use Minikube Manager when:
-
-- You want to test Docker images and airflow tasks in a local Kubernetes environment.
-- You’re preparing for deployment to production Airflow on AWS.
-- You're using `task_factory` in `prod_local` mode.
-
-#### CLI Reference
-
-```bash
-python minikube_manager.py [OPTIONS]
-```
-
-| Flag / Option          | Description                                                  | Example                |
-| ---------------------- |--------------------------------------------------------------| ---------------------- |
-| `--start`              | Start the Minikube cluster                                   | `--start`              |
-| `-s`, `--stop`         | Stop the Minikube cluster                                    | `-s`                   |
-| `-r`, `--restart`      | Restart the Minikube cluster                                 | `-r`                   |
-| `--build-only`         | Only build the Docker image inside the Minikube context      | `--build-only`         |
-| `--create-config-only` | Generate inline config for use in Docker Compose             | `--create-config-only` |
-| `--create-secrets`     | (might be removed) Create Kubernetes secrets for use in pods | `--create-secrets`     |
-
-
-#### Managing Secrets (TODO: talk with Tejas)
-
-You can now create any secrets dynamically:
-
-```python
-create_secrets(secret_name="my-creds", secret_data={"API_KEY": "1234", "ENV": "dev"})
-```
-
-This creates Kubernetes secrets inside the Minikube cluster.
-
-**Best Practice:** Use environment variables or secure vaults in production. Avoid hardcoding secrets.
-
-#### Image Naming Best Practices  (TODO: talk with Tejas)
-
-We recommend using:
-
-```text
-<project-name>/<package-name>:<version>
-```
-
-Where `version` is fetched from your Python package's `__version__`.
-
 
 
 
 ## Overview
 
-This template provides a standardized project structure for ML initiatives at 
+Gaiaflow provides a standardized project structure for ML initiatives at 
 BC, integrating essential MLOps tools:
 
 - **Apache Airflow**: For orchestrating ML pipelines and workflows
@@ -320,7 +208,7 @@ their choice, but they would need to make sure that it works in both
 ##### `dev` mode:
 
 - Local development mode.
-- Uses PythonOperator.
+- Uses `PythonOperator`.
 - Fastest for iteration.
 - Only `task_id`, `func_path`, `func_kwargs`, and `env` are used.
 - `image`, `secrets`, `env_vars` are ignored.
@@ -419,6 +307,175 @@ xcom_pull_tasks={
 ```
 This pulls the result of `preprocess_data` from the `Trainer` task group and 
 passes it to the function that is invoked in the task.
+
+
+
+## Architecture
+
+The Gaiaflow environment provides a local-first MLOps setup, enabling
+rapid development and production-like testing of Airflow DAGs along with 
+a scaffolding of your python package.
+
+After you develop your python package, you can create a reproducible and 
+scalable workflow using Airflow which is provided via the Gaiaflow framework.
+
+To make it easier for you to create `DAGs`, we provide you with `task_factory`,
+an abstraction over the Airflow operators to let you create DAGs in 
+a more user-friendly way allowing you to switch between environments like `dev`
+and `prod_local` to test your dags seamlessly.
+
+
+You can read more about `task_factory` [here](#6-task-factory)
+
+The following managers are provided to help setup the Gaiaflow framework
+on your machine.
+
+| Service           | Description                                                                                                     |
+|-------------------| --------------------------------------------------------------------------------------------------------------- |
+| `MlopsManager`    | Spins up MLOps services (Airflow, MLflow, etc.) for **local development**.                                      |
+| `MinikubeManager` | Spins up a **local Kubernetes cluster** for **testing DAGs in a production-like environment** before deploying. |
+
+Gaiaflow framework can run in three modes after you have your python package
+ready to be deployed as a workflow:
+
+### Local development mode when `task_factory`'s `ENVIRONMENT` is set to `dev`
+
+In this mode, you can access Airflow, MLflow and Minio services via `localhost`.
+Any changes that you make in the dags that use your package or the package
+itself, will be promptly reflected in the Airflow UI allowing a faster 
+iterative development cycle.
+
+For a reproducible and shareable ML project, we also provide MLFlow where
+you can log your experiments and models.
+
+For providing the same API as S3 while avoiding the egress costs during 
+development and testing, we provide MinIO which acts as a local object storage.
+
+![](assets/dev.png)
+
+### Local production like environment for testing when  `task_factory`'s `ENVIRONMENT` is set to `prod_local` 
+
+The same services are available as in the `dev` mode.
+
+But to test your workflow in a production-like environment, we use Minikube 
+local lightweight cluster which runs your tasks of your DAGs in an 
+Kubernetes environment (which is how the DAGs in production run).
+
+![](assets/prod_local.png)
+
+### Pushing dags to production when `task_factory`'s `ENVIRONMENT` is set to `prod` 
+
+In this mode, no more local services are useful, but instead a production
+Airflow, MLFlow and S3 is used once you create a release of your project.
+
+As you can see in the diagram below, once you create a release,
+it triggers a CI that allows the CDR (Centralized Dag Repository) to pull
+your DAGs. 
+The Airflow running on AWS is Gitsynced with this repository which allows your
+DAGs to be visible in the UI.
+
+To allow for your package to run in any environment, we create Docker images that 
+are pushed to ECR and then accessed by the Airflow tasks. 
+
+![](assets/prod.png)
+
+
+### MlopsManager
+
+Manages local MLOps components for day-to-day development and experimentation.
+
+
+| Service     | Description                                | Default Port(s)              |
+| ----------- | ------------------------------------------ | ---------------------------- |
+| **Airflow** | DAG orchestration & scheduling platform    | `8080` (Web UI)              |
+| **MLflow**  | ML lifecycle management (tracking, models) | `5000` (UI & API)            |
+| **MinIO**   | Object storage (S3-compatible)             | `9000` (S3 API), `9001` (UI) |
+
+#### When to Use It
+
+Use Mlops Manager when:
+
+- You are testing Jupyter code with MLFlow/Minio
+- You're iterating on pipeline code after creating your software package.
+- You want to test Airflow DAGs, Jupyter notebooks, or other services locally.
+- You need fast feedback loops before deploying to Minikube or production.
+- You are using `task_factory` in `dev` mode
+
+#### CLI Reference
+
+
+```bash
+python gaiaflow_manager.py [OPTIONS]
+```
+
+| Flag / Option           | Description                                     | Example                     |
+| ----------------------- | ----------------------------------------------- |-----------------------------|
+| `--start`               | Start selected services                         | `--start --service airflow` |
+| `--stop`                | Stop selected services                          | `--stop --service mlflow`   |
+| `--restart`             | Restart selected services                       | `--restart --service airflow`                |
+| `--service`             | Choose service: `airflow`, `mlflow`, `jupyter`  | `--service jupyter`         |
+| `-c`, `--cache`         | Use Docker cache during image builds            | `--start -c`                |
+| `-j`, `--jupyter-port`  | Port to expose Jupyter Notebook (default: 8895) | `--start -j 8896`           |
+| `-v`, `--delete-volume` | Delete Docker volumes on shutdown               | `--stop -v`                 |
+| `-b`, `--docker-build`  | Force rebuild Docker image                      | `--start -b`                |
+
+
+### MinikubeManager
+
+Used to create a lightweight local Kubernetes cluster that simulates production,
+for validating DAGs using KubernetesExecutor or custom pods.
+
+| Component    | Description                           |
+| ------------ | ------------------------------------- |
+| **Minikube** | Local, single-node Kubernetes cluster |
+
+
+#### When to Use It
+
+Use Minikube Manager when:
+
+- You want to test Docker images and airflow tasks in a local Kubernetes environment.
+- You’re preparing for deployment to production Airflow on AWS.
+- You're using `task_factory` in `prod_local` mode.
+
+#### CLI Reference
+
+```bash
+python minikube_manager.py [OPTIONS]
+```
+
+| Flag / Option          | Description                                                  | Example                |
+| ---------------------- |--------------------------------------------------------------| ---------------------- |
+| `--start`              | Start the Minikube cluster                                   | `--start`              |
+| `-s`, `--stop`         | Stop the Minikube cluster                                    | `-s`                   |
+| `-r`, `--restart`      | Restart the Minikube cluster                                 | `-r`                   |
+| `--build-only`         | Only build the Docker image inside the Minikube context      | `--build-only`         |
+| `--create-config-only` | Generate inline config for use in Docker Compose             | `--create-config-only` |
+| `--create-secrets`     | (might be removed) Create Kubernetes secrets for use in pods | `--create-secrets`     |
+
+
+#### Managing Secrets (TODO: talk with Tejas)
+
+You can now create any secrets dynamically:
+
+```python
+create_secrets(secret_name="my-creds", secret_data={"API_KEY": "1234", "ENV": "dev"})
+```
+
+This creates Kubernetes secrets inside the Minikube cluster.
+
+**Best Practice:** Use environment variables or secure vaults in production. Avoid hardcoding secrets.
+
+#### Image Naming Best Practices  (TODO: talk with Tejas)
+
+We recommend using:
+
+```text
+<project-name>/<package-name>:<version>
+```
+
+Where `version` is fetched from your Python package's `__version__`.
+
 
 
 

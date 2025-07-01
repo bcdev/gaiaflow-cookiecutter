@@ -3,9 +3,10 @@
 
 from unittest.mock import MagicMock, patch
 
+from {{cookiecutter.package_name}}.train.change_me_train import Trainer
+
 # import mlflow
 
-from {{ cookiecutter.package_name }}.train.change_me_train import Trainer
 
 
 def test_trainer_initialization():

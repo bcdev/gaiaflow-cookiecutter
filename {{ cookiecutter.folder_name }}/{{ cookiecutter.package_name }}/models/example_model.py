@@ -5,6 +5,7 @@ import os
 os.environ["KERAS_BACKEND"] = "tensorflow"
 import keras
 
+
 def get_model():
     return keras.Sequential(
         [

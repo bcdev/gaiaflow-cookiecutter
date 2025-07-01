@@ -24,4 +24,5 @@ dependencies:
   - pytest
   # Linting
   - ruff
+  - isort
   # add your libraries here

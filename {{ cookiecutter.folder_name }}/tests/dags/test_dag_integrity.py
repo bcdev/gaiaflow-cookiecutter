@@ -1,6 +1,6 @@
-import pytest
 import logging
 
+import pytest
 from airflow.models import DagBag
 
 

@@ -21,9 +21,9 @@ experiments, model deployments and more in an standardized way.
 The architecture below describes what we want to achieve as our MLOps framework.
 This is taken from the [Google Cloud Architecture Centre](https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning#mlops_level_2_cicd_pipeline_automation)
 
-Currently what we support is the within the box outlined as local MLOps.
+Currently what we support is the shown as green ticks.
 
-![Current Local MLOps Architecture](assets/current_mlops_arch.png)
+![Current Local MLOps Architecture](assets/mlops_arch.png)
 
 **Please note**: 
 This framework has only been tested on Linux Ubuntu and Windows 11 and it works 

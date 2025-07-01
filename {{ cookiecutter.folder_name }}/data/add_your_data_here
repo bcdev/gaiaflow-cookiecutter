@@ -5,4 +5,5 @@ If you have the data stored locally on your system, you can move it here so that
 Although, it is recommended that you develop your package while testing with a small portion of the data by uploading
 it the local MinIO store that is created in the Gaiaflow framework.
 
-If you are pulling it via S3 AWS, you can move some of it for testing and development to the MinIO backend.
+If you are pulling it via S3 AWS, it is recommended you pull and move some of it for testing and development to the
+MinIO backend.

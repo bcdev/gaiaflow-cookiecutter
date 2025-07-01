@@ -4,6 +4,7 @@
 # import mlflow
 from dotenv import load_dotenv
 
+
 def predict(model_uri: str):
     load_dotenv()
     print("model URI: ", model_uri)

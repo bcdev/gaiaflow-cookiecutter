@@ -239,15 +239,46 @@ check if everything was generated correctly.
 8. Once your model is finished training, you can now deploy it either using 
 docker (recommended) or locally as shown in the next section.
 
+## Code formatting and linting
+
+### Ruff Check (linting)
+```bash
+ruff check .
+```
+
+### Ruff Check with Auto-fix (as much as possible)
+```bash
+ruff check . --fix
+```
+
+### Ruff Format (Code formatting)
+```bash
+ruff format .
+```
+
+### isort (import sorting)
+```bash
+isort .
+```
+
+
 ## Troubleshooting Tips
 
 - If you get Port already in use, change it with -j or free the port.
 - Use -v to clean up Docker volumes if service states become inconsistent.
 - Logs are saved in the logs/ directory.
+- Please make sure that none of the `__init__.py` files are
+completely empty as this creates some issues with
+mlflow logging. You can literally just add a `#` to the
+`__init__.py` file. This is needed because while serializing
+the files, empty files have 0 bytes of content and that
+creates issues with the urllib3 upload to S3 (this
+happens inside MLFlow)
 
 
 
-## Deployment workflow
+## MLFlow Model Deployment workflow locally
+
 
 Once you have a model trained, you can deploy it locally either as
 container or serve it directly from MinIO S3.

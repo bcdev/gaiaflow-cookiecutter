@@ -1,7 +1,9 @@
 import os
+
 import mlflow
 import numpy as np
 from dotenv import load_dotenv
+
 
 def example_predict(model_uri: str):
     load_dotenv()

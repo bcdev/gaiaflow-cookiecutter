@@ -1,7 +1,7 @@
 # PLEASE DELETE ME AFTER YOU ARE DONE UNDERSTANDING!!
 
-import os
 import itertools
+import os
 
 import mlflow
 import mlflow.tensorflow
@@ -10,14 +10,12 @@ from dotenv import load_dotenv
 
 os.environ["KERAS_BACKEND"] = "tensorflow"
 import keras
-
-from {{ cookiecutter.package_name }}.model_pipeline.example_model_pipeline import (
-    ModelPipelineModel)
-from {{ cookiecutter.package_name }}.utils.utils import (
-    get_or_create_experiment
-)
-from {{ cookiecutter.package_name }}.models.example_model import get_model
-from {{ cookiecutter.package_name }}.dataloader.example_data import load_preprocessed_data
+from {{cookiecutter.package_name}}.dataloader.example_data import \
+    load_preprocessed_data
+from {{cookiecutter.package_name}}.model_pipeline.example_model_pipeline import \
+    ModelPipelineModel
+from {{cookiecutter.package_name}}.models.example_model import get_model
+from {{cookiecutter.package_name}}.utils.utils import get_or_create_experiment
 
 load_dotenv()
 

@@ -1,14 +1,14 @@
 import argparse
 import os
 import platform
+import shutil
 import subprocess
 import sys
-import shutil
-import yaml
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
+import yaml
 from docker_config import DOCKER_IMAGE_NAME
 
 

@@ -1,7 +1,8 @@
 import os
 import pathlib
-import sys
 import shutil
+import sys
+
 import ruamel.yaml
 from ruamel.yaml import CommentedMap
 

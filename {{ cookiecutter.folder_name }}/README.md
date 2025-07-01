@@ -1,6 +1,6 @@
 {{ cookiecutter.project_name|capitalize }}
 
-Please have a look at the `MLOps.md` to get started!
+Please have a look at the documentation to get started!
 Feel free to update this README as your own.
 
 To add a license, please choose which license you want for your project 

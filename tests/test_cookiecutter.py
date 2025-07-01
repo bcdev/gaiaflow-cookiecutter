@@ -5,8 +5,8 @@ import tempfile
 from itertools import product
 from typing import Any
 
-import yaml
 import pytest
+import yaml
 from cookiecutter.main import cookiecutter
 
 BASE_CONTEXT = {
@@ -38,7 +38,6 @@ CORE_FILES = {
     "notebooks/README.md",
     "notebooks/examples/mlflow_direct_inference.ipynb",
     "notebooks/examples/mlflow_local_deploy_inference.ipynb",
-    "notebooks/examples/mlfow_introduction.ipynb",
     "data/add_your_data_here",
     "my_package/README.md",
     "my_package/__init__.py",

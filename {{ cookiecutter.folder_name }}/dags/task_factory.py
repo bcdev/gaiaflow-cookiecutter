@@ -1,7 +1,8 @@
 import json
 
 from airflow.operators.python import PythonOperator
-from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.pod import \
+    KubernetesPodOperator
 from kubernetes.client import V1EnvFromSource, V1SecretReference
 
 
@@ -29,7 +30,7 @@ def task_factory(
         full_kwargs["xcom_pull_tasks"] = xcom_pull_tasks
 
     if env == "dev":
-        from {{ cookiecutter.package_name }}.runner import run
+        from {{cookiecutter.package_name}}.runner import run
         return PythonOperator(
             task_id=task_id,
             python_callable=run,

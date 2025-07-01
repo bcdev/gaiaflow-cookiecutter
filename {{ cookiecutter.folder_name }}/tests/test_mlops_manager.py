@@ -1,10 +1,12 @@
-import unittest
-from unittest.mock import patch
 import os
 import shutil
+import unittest
+from unittest.mock import patch
 
 import pytest
-from mlops_manager import main as mlops_main, MlopsManager
+from mlops_manager import MlopsManager
+from mlops_manager import main as mlops_main
+
 
 @pytest.mark.gaiaflow
 class TestMlopsManager(unittest.TestCase):

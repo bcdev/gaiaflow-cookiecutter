@@ -27,8 +27,8 @@ ENVIRONMENT = "dev" # can be one of ("dev", "prod_local", "prod")
 #
 # 2. Obtain the correct Minikube gateway address:
 #    For Linux users:
-#    - Execute the `docker_network_gateway()` function from the mlops package
-#    to retrieve the Minikube gateway IP.
+#    - Execute the `docker_network_gateway()` function from the `utils.py`
+#    script to retrieve the Minikube gateway IP.
 #    - This IP is essential for connecting your DAG to local MLOps services
 #    during testing.
 #    - The gateway is typically `192.168.49.1` in linux, but this may vary by system.
@@ -37,7 +37,7 @@ ENVIRONMENT = "dev" # can be one of ("dev", "prod_local", "prod")
 #    - The gateway is "host.docker.internal" for Windows.
 #
 # 3. Make sure you update `ENVIRONMENT='prod_local'`
-MINIKUBE_GATEWAY = "<YOUR_MINIKUBE_GATEWAY_IP>"
+MINIKUBE_GATEWAY = "<GATEWAY_ADDRESS>"
 
 
 default_args = {

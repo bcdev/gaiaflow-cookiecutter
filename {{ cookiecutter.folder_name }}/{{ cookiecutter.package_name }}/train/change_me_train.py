@@ -7,11 +7,13 @@
 
 from typing import Any
 
+# from {{ cookiecutter.package_name }}.model_pipeline.change_me_model_pipeline import ModelPipelineModel
+from {{cookiecutter.package_name}}.dataloader.change_me_data import \
+    load_preprocessed_data
+from {{cookiecutter.package_name}}.models.change_me_model import get_model
+
 # import mlflow
 
-# from {{ cookiecutter.package_name }}.model_pipeline.change_me_model_pipeline import ModelPipelineModel
-from {{ cookiecutter.package_name }}.dataloader.change_me_data import load_preprocessed_data
-from {{cookiecutter.package_name}}.models.change_me_model import get_model
 
 
 class Trainer:
