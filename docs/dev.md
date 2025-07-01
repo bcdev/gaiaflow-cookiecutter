@@ -114,14 +114,15 @@ shown in the next step.
 The following script spins up containers for Airflow, MLFLow, MinIO 
 (if you chose it) and Jupyter Lab (not in a container).
 
-The following flags exist which could alter the behaviour of the way the 
-framework runs, but the user should not worry about it or change them if not 
-needed.
-```commandline
--c -> to build docker images without cache
--j -> to change the port of jupyter lab instance running; defaults to 8895
--v -> to delete attached volumes when shutting down (beware! you will loose all your experiments and s3 minio data locally if you use this flag.)
--b -> to build the docker images before starting the containers
+It is recommended that you first run
+```bash
+python minikube_manager.py --start
+```
+so that the network needed by Airflow when testing in `prod_local` mode is ready.
+
+Then start the MLOps services using:
+```bash
+python mlops_mananger.py --start -b
 ```
 
 NOTE: When you run this for the first time, make sure you use the `-b` flag as
