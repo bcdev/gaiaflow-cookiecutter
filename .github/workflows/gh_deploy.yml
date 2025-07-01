@@ -16,14 +16,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: '3.x'
-
-      - name: Install Dependencies
-        run: |
-          pip install mkdocs
+          activate-environment: mkdocs-env
+          environment-file: env.yml
+          python-version: 3.11
+          auto-activate-base: false
 
       - name: Deploy to GitHub Pages
         run: mkdocs gh-deploy --force
