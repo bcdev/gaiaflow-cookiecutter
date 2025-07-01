@@ -80,6 +80,8 @@ class MinikubeManager:
         self.log(f"Stopping minikube profile [{self.minikube_profile}]...")
         self.run(["minikube", "stop", "--profile", self.minikube_profile],
                  f"Error stopping minikube profile [{self.minikube_profile}]")
+        self.run(["minikube", "delete", "--profile", self.minikube_profile],
+                 f"Error deleting minikube profile [{self.minikube_profile}]")
         self.log(f"Stopped minikube profile [{self.minikube_profile}]")
 
     def build_docker_image(self):

@@ -1,7 +1,7 @@
 # GaiaFlow: MLOps Project Template
 
 [![Unittest Gaiaflow](https://github.com/bcdev/gaiaflow/actions/workflows/unittest.yml/badge.svg)](https://github.com/bcdev/gaiaflow/actions/workflows/unittest.yml)
-
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v0.json)](https://github.com/charliermarsh/ruff)
 ![Gaiaflow](assets/gaiaflow.png)
 
 <sub>(Image created using ChatGPT)</sub>
@@ -15,7 +15,8 @@ ingestion to machine learning modeling to deploying them.
 It is a comprehensive template for machine learning projects
 providing a MLOps framework with tools like `Airflow`, `MLFlow`, 
 `JupyterLab`, `Minio` and `Minikube` to allow the user to create ML projects, 
-experiments, model deployments and more in an standardized way.
+experiments, model deployments and more in an standardized way. The documentation
+is available [here](https://bcdev.github.io/gaiaflow/)
 
 
 The architecture below describes what we want to achieve as our MLOps framework.

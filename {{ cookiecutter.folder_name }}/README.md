@@ -1,3 +1,16 @@
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v0.json)](https://github.com/charliermarsh/ruff)
+
+TODO:
+
+Add Unittest badge
+
+Add Codecov badge
+
+Add Pypi/Conda or both Badge when your package is released
+
+Add License Badge
+
+
 {{ cookiecutter.project_name|capitalize }}
 
 Please have a look at the documentation to get started!
