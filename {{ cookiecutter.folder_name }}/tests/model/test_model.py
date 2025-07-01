@@ -1,7 +1,7 @@
 # Hi, I am a test file. Please update me in the required places after you
 # have updated your package.
 
-from {{ cookiecutter.package_name }}.models.change_me_model import get_model
+from {{cookiecutter.package_name}}.models.change_me_model import get_model
 
 
 def test_model_creation():

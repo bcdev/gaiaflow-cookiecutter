@@ -26,17 +26,3 @@ def example_postprocess(predictions: np.ndarray):
 
     # Otherwise return the array of predictions
     return predicted_classes
-
-
-if __name__ == "__main__":
-    # single pred
-    data = np.random.rand(1, 10)
-    postprocessed_results = example_postprocess(data)
-    print("Before postprocessing", data)
-    print("After postprocessing", postprocessed_results)
-
-    # batch pred
-    data = np.random.rand(4, 10)
-    postprocessed_results = example_postprocess(data)
-    print("Before postprocessing", data)
-    print("After postprocessing", postprocessed_results)

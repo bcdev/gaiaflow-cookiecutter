@@ -13,8 +13,8 @@
 # PLEASE DELETE ME AFTER YOU ARE DONE UNDERSTANDING!!
 
 import keras
-import numpy as np
 import mlflow.pyfunc
+import numpy as np
 
 
 # To create your own custom model, extend this class: mlflow.pyfunc.PythonModel
@@ -29,14 +29,14 @@ class ModelPipelineModel(mlflow.pyfunc.PythonModel):
         self.model = trained_model
 
     def preprocess(self, input_data: np.ndarray):
-        from {{ cookiecutter.package_name }} import preprocess_single_sample
+        from {{cookiecutter.package_name}} import preprocess_single_sample
 
         print("Preprocessing input data...")
         processed = preprocess_single_sample(input_data)
         return processed
 
     def postprocess(self, predictions: np.ndarray):
-        from {{ cookiecutter.package_name }} import example_postprocess
+        from {{cookiecutter.package_name}} import example_postprocess
 
         print("Postprocessing predictions...")
         postprocessed = example_postprocess(predictions)

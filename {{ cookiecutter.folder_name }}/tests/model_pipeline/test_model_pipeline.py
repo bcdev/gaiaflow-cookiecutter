@@ -3,7 +3,8 @@
 
 from unittest.mock import MagicMock
 
-from {{ cookiecutter.package_name }}.model_pipeline.change_me_model_pipeline import ModelPipelineModel
+from {{cookiecutter.package_name}}.model_pipeline.change_me_model_pipeline import \
+    ModelPipelineModel
 
 
 def test_model_pipeline():

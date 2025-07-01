@@ -6,28 +6,29 @@
 
 <sub>(Image created using ChatGPT)</sub>
 
-GaiaFlow combines `Gaia` (the Greek goddess of Earth, symbolizing our planet) 
-with `Flow` (representing seamless workflows in MLOps), creating an MLOps 
+The word `GaiaFlow` is a combination of `Gaia` (the Greek goddess of Earth, symbolizing our planet) 
+and `Flow` (representing seamless workflows in MLOps). It is an MLOps 
 framework tailored for efficient Earth Observation projects. GaiaFlow is built 
-to manage the entire pipeline of remote sensing applications, from data 
+to provide you with a framework for the entire pipeline of remote sensing applications, from data 
 ingestion to machine learning modeling to deploying them.
 
-It is a comprehensive template (_in-development_) for machine learning projects
-providing a local MLOps framework with tools like `Airflow`, `MLFlow`, 
-`JupyterLab` and `Minio` to allow the user to create ML projects, experiments, 
-model deployments and more in an standardized way.
+It is a comprehensive template for machine learning projects
+providing a MLOps framework with tools like `Airflow`, `MLFlow`, 
+`JupyterLab`, `Minio` and `Minikube` to allow the user to create ML projects, 
+experiments, model deployments and more in an standardized way.
 
 
 The architecture below describes what we want to achieve as our MLOps framework.
 This is taken from the [Google Cloud Architecture Centre](https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning#mlops_level_2_cicd_pipeline_automation)
 
-Currently what we support is the within the box outlined as local MLOps.
+Currently what we support is the shown as green ticks.
 
-![Current Local MLOps Architecture](assets/current_mlops_arch.png)
+![Current Local MLOps Architecture](assets/mlops_arch.png)
 
 **Please note**: 
-This template has only been tested on Linux Ubuntu and it works as expected.
-As we have not tested it yet on Windows or MacOS, we are not sure if it works in there.
+This framework has only been tested on Linux Ubuntu and Windows 11 and it works 
+as expected.
+As we have not tested it yet on MacOS, we are not sure if it works in there.
 
 # Table of Contents
 - [Overview](#overview)
@@ -46,16 +47,16 @@ As we have not tested it yet on Windows or MacOS, we are not sure if it works in
   * [Installation](#installation)
 - [Troubleshooting](#troubleshooting)
 - [Acknowledgments](#acknowledgments)
-- [TODO](#todo)
 
 ## Overview
 
-This template provides a standardized project structure for ML initiatives at BC,
-integrating essential MLOps tools:
+This template provides a standardized project structure for ML initiatives at 
+BC, integrating essential MLOps tools:
 - **Apache Airflow**: For orchestrating ML pipelines and workflows
 - **MLflow**: For experiment tracking and model registry
 - **JupyterLab**: For interactive development and experimentation
 - **MinIO**: For local object storage for ML artifacts
+- **Minikube**: For local lightweight Kubernetes cluster
 
 ## Project Structure from this template
 
@@ -84,13 +85,18 @@ Any files or folders marked with `^` can be extended, but carefully.
 │   └── utils/           # Utility functions
 ├── tests/               # Unit and integration tests
 ├── data/                # If you have data locally, move it here and use it so that airflow has access to it.
-├── README.md            # The one you are reading :p. Feel free to update it based on your project.
+├── README.md            # Its a readme. Feel to change it!
+├── CHANGES.md           # You put your changelog for every version here.
 ├── pyproject.toml       # Config file containing your package's build information and its metadata
 ├── .env * ^             # Your environment variables that docker compose and python scripts can use (already added to .gitignore)
+├── .gitignore * ^       # Files to ignore when pushing to git.
 ├── environment.yml      # Libraries required for local mlops and your project
-├── mlflow-artifacts/ *  # MLflow artifacts (created if you don't choose minio)
-├── mlops_run.sh *       # Shell script to start MLOps services locally 
+├── mlops_manager.py *   # Manager to manage the mlops services locally
+├── minikube_manager.py *# Manager to manage the kubernetes cluster locally 
 ├── docker-compose.yml * # Docker compose that spins up all services locally for MLOps
+├── utils.py *           # Utility function to get the minikube gateway IP required for testing.
+├── docker_config.py *   # Utility function to get the docker image name based on your project.
+├── kube_config_inline * # This file is needed for Airflow to communicate with Minikube when testing locally in a prod env.
 └── dockerfiles/ *       # Dockerfiles and compose files
 ```
 
@@ -103,29 +109,21 @@ standardized MLOps framework
 ### 0. Cookiecutter
 Purpose: Project scaffolding and template generation
 
-    Provides a standardized way to create ML projects with predefined structures.
-    Ensures consistency across different ML projects within BC
+- Provides a standardized way to create ML projects with predefined structures.
+- Ensures consistency across different ML projects within BC
 
 
 ### 1. Apache Airflow
 
 Purpose: Workflow orchestration
 
-    Manages and schedules data pipelines.
-    Automates end-to-end ML workflows, including data ingestion, training, deployment and re-training.
-    Provides a user-friendly web interface for tracking task execution's status.
+- Manages and schedules data pipelines.
+- Automates end-to-end ML workflows, including data ingestion, training, deployment and re-training.
+- Provides a user-friendly web interface for tracking task execution's status.
 
 #### Airflow UI
 
-
-
-
 https://github.com/user-attachments/assets/b7a76c27-2f38-489f-9798-d0af4ac7619b
-
-
-
-
-
 
 - **DAGs (Directed Acyclic Graphs)**: A workflow representation in Airflow. You 
 can enable, disable, and trigger DAGs from the UI.
@@ -148,17 +146,13 @@ Common Actions
 
 Purpose: Experiment tracking and model management
 
-    Tracks and records machine learning experiments, including hyperparameters, performance metrics, and model artifacts.
-    Facilitates model versioning and reproducibility.
-    Supports multiple deployment targets, including cloud platforms, Kubernetes, and on-premises environments.
+- Tracks and records machine learning experiments, including hyperparameters, performance metrics, and model artifacts.
+- Facilitates model versioning and reproducibility.
+- Supports multiple deployment targets, including cloud platforms, Kubernetes, and on-premises environments.
 
 #### MLFlow UI
 
-
-
 https://github.com/user-attachments/assets/5c639c34-cba2-4682-a2ed-6a854e9386c1
-
-
 
 - **Experiments**: Group of runs tracking different versions of ML models.
 - **Runs**: A single execution of an ML experiment with logged parameters, 
@@ -180,14 +174,24 @@ Model.
 
 Purpose: Interactive development environment
 
-    Provides an intuitive and interactive web-based interface for exploratory data analysis, visualization, and model development.
+- Provides an intuitive and interactive web-based interface for exploratory data analysis, visualization, and model development.
 
 ### 4. MinIO
 
 Purpose: Object storage for ML artifacts
 
-    Acts as a cloud-native storage solution for datasets and models.
-    Provides an S3-compatible API for seamless integration with ML tools.
+- Acts as a cloud-native storage solution for datasets and models.
+- Provides an S3-compatible API for seamless integration with ML tools.
+
+### 5. Minikube
+
+Purpose: Local Kubernetes cluster for development & testing
+
+- Allows you to run a single-node Kubernetes cluster locally.
+- Simulates a production-like environment to test Airflow DAGs end-to-end.
+- Great for validating KubernetesExecutor, and Dockerized task behavior before deploying to a real cluster.
+- Mimics production deployment without the cost or risk of real cloud infrastructure.
+
 
 ## Getting Started
 
@@ -201,10 +205,14 @@ If you face any issues, please check out the [troubleshooting section](#troubles
 - Docker and Docker Compose
 - [Mamba](https://github.com/conda-forge/miniforge) - Please make sure you 
 install `Python 3.12` as this repository has been tested with that version.
+- [Minikube on Linux](https://minikube.sigs.k8s.io/docs/start/?arch=%2Flinux%2Fx86-64%2Fstable%2Fbinary+download)
+- [Minikube on Windows](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fwindows%2Fx86-64%2Fstable%2F.exe+download)
 
 #### Docker and Docker compose plugin Installation
 
-Please follow the steps mentioned in this [link](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
+For Linux users: please follow the steps mentioned in this [link](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
+
+For Windows users: please follow the steps mentioned in this [link](https://docs.docker.com/desktop/setup/install/windows-install/)
 
 This should install both Docker and Docker compose plugin.
 You can verify the installation by these commands
@@ -219,7 +227,8 @@ and output would be something like:
 ```
 This means now you have successfully installed Docker. 
 
-## Installation
+
+Once the pre-requisites are done, you can go ahead with the project creation:
 
 1. Create a separate environment for cookiecutter
 ```bash
@@ -239,7 +248,7 @@ Once the project is created, please read the README.md from that.
 
 
 ## Troubleshooting
-
+0. If you are windows, please use the `miniforge prompt` commandline.
 
 1. If you face issue like `Docker Daemon not started`, start it using:
 ```bash
@@ -311,7 +320,4 @@ If you face any other problems not mentioned above, please reach out to us.
 - [MLflow](https://mlflow.org/)
 - [Minio](https://min.io/docs/minio/container/index.html)
 - [JupyterLab](https://jupyterlab.readthedocs.io/)
-
-
-## TODO
-- Check TODO list internally
+- [Minikube](https://minikube.sigs.k8s.io/docs/)

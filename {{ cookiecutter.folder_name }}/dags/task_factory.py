@@ -1,48 +1,93 @@
 import json
+
 from airflow.operators.python import PythonOperator
-from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.pod import \
+    KubernetesPodOperator
+from kubernetes.client import V1EnvFromSource, V1SecretReference
+
 
 def task_factory(
-    task_id: str,
-    func_path: str,
-    func_kwargs: dict = None,
-    image: str = None,
-    env: str = "dev",
-    xcom_push: bool = True,
-    xcom_pull_tasks: dict = None,
-    secrets: list = None,
+        task_id: str,
+        func_path: str,
+        func_kwargs: dict = None,
+        image: str = None,
+        env: str = "dev",
+        xcom_push: bool = True,
+        xcom_pull_tasks: dict = None,
+        secrets: list = None,
+        env_vars: dict = None,
+        retries: int = 3,
 ):
+    if func_kwargs is None:
+        func_kwargs = {}
+
+    full_kwargs = {
+        "func_path": func_path,
+        "kwargs": func_kwargs,
+    }
+
     if xcom_pull_tasks:
-        for arg_key, pull_config in xcom_pull_tasks.items():
-            source_task, key = pull_config["task"], pull_config.get("key", "return_value")
-            func_kwargs[arg_key] = "{{ ti.xcom_pull(task_ids='" + source_task + "', key='" + key + "') }}"
+        full_kwargs["xcom_pull_tasks"] = xcom_pull_tasks
 
     if env == "dev":
-        from {{ cookiecutter.package_name }}.runner import run
+        from {{cookiecutter.package_name}}.runner import run
         return PythonOperator(
             task_id=task_id,
             python_callable=run,
-            op_kwargs={"func_path": func_path, "kwargs": func_kwargs},
+            op_kwargs=full_kwargs,
             do_xcom_push=xcom_push,
+            retries=retries
         )
-    elif env == "prod":
+    elif env == "prod" or env == "prod_local":
+        if not image:
+            raise ValueError(f"Docker image expected when in {env} mode")
+        if env == "prod_local":
+            in_cluster = False
+        else:
+            in_cluster = True
+        if secrets:
+            env_from = [V1EnvFromSource(secret_ref=V1SecretReference(
+                name=secret)) for secret in secrets]
+        else:
+            env_from = None
+
+        xcom_pull_results = {}
+
+        for arg_key, pull_config in (xcom_pull_tasks or {}).items():
+            source_task = pull_config["task"]
+            key = pull_config.get("key", "return_value")
+            xcom_pull_results[source_task] = (
+                    {% raw %}
+                    "{{ ti.xcom_pull(task_ids='" + source_task + "', key='" + key + "') }}"
+                    {% endraw %}
+            )
+
+        default_env_vars = {
+            "FUNC_PATH": func_path,
+            "FUNC_KWARGS": json.dumps(func_kwargs),
+            "XCOM_PULL_TASKS": json.dumps(xcom_pull_tasks or {}),
+            "XCOM_PULL_RESULTS": json.dumps(xcom_pull_results),
+            "ENV": "prod",
+        }
+
+        if env_vars:
+            env_vars.update(default_env_vars)
+
         return KubernetesPodOperator(
             task_id=task_id,
             name=task_id,
             image=image,
             cmds=["python", "-m", "{{ cookiecutter.package_name }}.runner"],
-            env_vars={
-                "FUNC_PATH": func_path,
-                "FUNC_KWARGS": json.dumps(func_kwargs),
-                "ENV": "prod"
-            },
-            secrets=secrets or [],
+            env_vars=env_vars,
+            env_from=env_from,
             get_logs=True,
             is_delete_operator_pod=True,
-            in_cluster=True,
-            do_xcom_push=xcom_push
+            log_events_on_failure=True,
+            in_cluster=in_cluster,
+            do_xcom_push=xcom_push,
+            retries=retries
         )
 
     else:
-        raise ValueError(f"env can only be dev or prod, but got {env}")
-
+        raise ValueError(f"env can only be dev, prod_local or prod, but got"
+                         f" {env}")

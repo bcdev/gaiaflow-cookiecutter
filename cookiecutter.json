@@ -1,18 +1,10 @@
 {
-    " ": "\n\n\n  ______ _______ _____ _______ _______         _____  _  _  _\n |  ____ |_____|   |   |_____| |______ |      |     | |  |  |\n |_____| |     | __|__ |     | |       |_____ |_____| |__|__|\n\n\n\n\nGaiaFlow is a ML project template that helps you create standardized projects across BC and also providing you with a MLOps framework (currently local) to streamline your ML projects.\n\nIn this Cookiecutter ML project template, you will get the following questions.\n\nProject Name: Please provide your project name (only spaces, dots, underscores or dashes special characters allowed)\n\nProject Description: A small description of your project.\n\nYour name and email address: For adding it to the python package metadata.\n\nUse Minio: Whether you would like to use MinIO as your local S3 storage for mimicking actual S3 operations? If you do not, a folder names `mlflow_artifacts` will be created locally where the models will be stored. To store the data, you would have to now either store it locally or on AWS S3 if you do not choose the MinIO option.\n\nShow examples: Do you want to see the out-of-the-box airflow examples along with an example ML project working end-to-end? These examples would be visible in the Airflow UI. (Highly recommeded for first time users!!)\n\nUse Dag-factory: Do you want to use the dag-factory tool to create DAGs using a config file? If not, you would have to create your own DAGs in python. Examples will be provided for the method that you choose. Use dag-factory either when\n  i) you like .yml configuration files more than Python.\n  ii) you have tried the Pythonic way of creating DAGs and would now like to switch to something simpler\nUse the python version of creating dags; well, if you like working in Python.\n\nFolder name: By default, we will provide you with a folder name based on your project name. If you don't like it, you can change it in this option.\n\nPackage Name: Please provide a package name where you will develop your project. It should be different than the folder name.\n\n[Please press enter to continue]",
+    " ": "\n\n\n  ______ _______ _____ _______ _______         _____  _  _  _\n |  ____ |_____|   |   |_____| |______ |      |     | |  |  |\n |_____| |     | __|__ |     | |       |_____ |_____| |__|__|\n\n\n\n\nGaiaFlow is a ML project template that helps you create standardized projects across BC and also providing you with a MLOps framework (currently local) to streamline your ML projects.\n\nIn this Cookiecutter ML project template, you will get the following questions.\n\nProject Name: Please provide your project name (only spaces, dots, underscores or dashes special characters allowed)\n\nProject Description: A small description of your project.\n\nYour name and email address: For adding it to the python package metadata.\n\nShow examples: Do you want to see the out-of-the-box airflow examples along with an example ML project working end-to-end? These examples would be visible in the Airflow UI. (Highly recommeded for first time users!!)\n\nFolder name: By default, we will provide you with a folder name based on your project name. If you don't like it, you can change it in this option.\n\nPackage Name: Please provide a package name where you will develop your project. It should be different than the folder name.\n\n[Please press enter to continue]",
     "project_name": "Enter the name of your ML Project",
     "project_description": "A short description of the project",
     "author_name": "Your Name",
     "author_email": "your.email@example.com",
-    "use_minio": [
-        "yes",
-        "no"
-    ],
     "show_examples": [
-        "yes",
-        "no"
-    ],
-    "use_dag_factory": [
         "yes",
         "no"
     ],

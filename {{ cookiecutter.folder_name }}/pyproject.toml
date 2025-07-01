@@ -66,9 +66,6 @@ dev = [
     "jupyter",
     "python-dotenv",
     "fsspec",
-    {% if cookiecutter.use_dag_factory == "yes" %}
-    "dag_factory",
-    {% endif %}
     "twine",
     "build",
 ]

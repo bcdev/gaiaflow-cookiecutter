@@ -1,24 +1,15 @@
 # PLEASE DELETE ME AFTER YOU ARE DONE UNDERSTANDING!!
 
 import os
-from typing import TYPE_CHECKING
-
-import numpy as np
 from datetime import datetime
 
+import numpy as np
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
-
-
-from {{ cookiecutter.package_name }}.utils.utils import get_s3_client
-from {{ cookiecutter.package_name }}.dataloader.example_data import (
-    load_raw_data)
+from {{cookiecutter.package_name}}.dataloader.example_data import load_raw_data
+from {{cookiecutter.package_name}}.utils.utils import get_s3_client
 
 load_dotenv()
-
-if TYPE_CHECKING:
-    from airflow.models import TaskInstance
-
 
 s3 = get_s3_client(
     endpoint_url=os.getenv("MLFLOW_S3_ENDPOINT_URL"),
@@ -80,7 +71,8 @@ def save_data(
     return object_path, bucket_name
 
 
-def example_preprocess(ti: "TaskInstance" = None):
+def example_preprocess(dummy_arg: str):
+    print("Called with dummy_arg:::", dummy_arg)
     # For training data
     (X_train, y_train), (X_test, y_test) = load_raw_data()
 
@@ -94,10 +86,14 @@ def example_preprocess(ti: "TaskInstance" = None):
     stored_path, bucket_name = save_data(X_train_processed, y_train, X_test_processed,
                            y_test, path,
               timestamp)
-    ti.xcom_push(key="preprocessed_path", value=stored_path)
-    ti.xcom_push(key="bucket_name", value=bucket_name)
     print("Preprocessing complete!")
 
+    # Returning a dict would make it available via xcom (
+    # cross-communications between tasks) to be picked up by the downstream
+    # tasks. Make sure, you pass in all the information that is required by
+    # the downstream tasks which depend on this task. For e.g,
+    # `example_train` depends on this task and expects these two arguments.
+    return {"preprocessed_path": stored_path, "bucket_name": bucket_name}
 
 def preprocess_single_sample(sample: np.ndarray):
     """
@@ -110,20 +106,3 @@ def preprocess_single_sample(sample: np.ndarray):
         Preprocessed sample of shape (1, 28, 28, 1)
     """
     return feature_engineering(sample, is_single_input=True)
-
-
-def preprocess_batch_samples(samples: np.ndarray):
-    """
-    Preprocess a batch of input samples
-
-    Args:
-        samples: Batch of input images of shape (batch_size, 28, 28)
-
-    Returns:
-        Preprocessed batch of shape (batch_size, 28, 28, 1)
-    """
-    return feature_engineering(samples, is_single_input=False)
-
-
-if __name__ == "__main__":
-    example_preprocess()

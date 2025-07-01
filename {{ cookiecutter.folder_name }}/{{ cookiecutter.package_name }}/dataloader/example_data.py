@@ -2,10 +2,7 @@ import os
 
 import numpy as np
 from tensorflow.keras.datasets import mnist
-
-from {{ cookiecutter.package_name }}.utils.utils import (
-    get_s3_client,
-)
+from {{cookiecutter.package_name}}.utils.utils import get_s3_client
 
 
 def load_raw_data():
@@ -20,7 +17,7 @@ def load_preprocessed_data(preprocessed_path: str, bucket_name: str):
     )
 
     local_path = "/tmp"
-    local_file = f"{local_path}/{preprocessed_path.split("/")[-1]}"
+    local_file = f"{local_path}/{preprocessed_path.split('/')[-1]}"
     s3.download_file(bucket_name, preprocessed_path, local_file)
 
     data = np.load(local_file)

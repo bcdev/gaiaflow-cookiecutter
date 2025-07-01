@@ -1,26 +1,21 @@
 # PLEASE DELETE ME AFTER YOU ARE DONE UNDERSTANDING!!
 
-import os
 import itertools
-from typing import TYPE_CHECKING
+import os
 
 import mlflow
 import mlflow.tensorflow
 import numpy as np
 from dotenv import load_dotenv
+
 os.environ["KERAS_BACKEND"] = "tensorflow"
 import keras
-
-from {{ cookiecutter.package_name }}.model_pipeline.example_model_pipeline import (
-    ModelPipelineModel)
-from {{ cookiecutter.package_name }}.utils.utils import (
-    get_or_create_experiment
-)
-from {{ cookiecutter.package_name }}.models.example_model import get_model
-from {{ cookiecutter.package_name }}.dataloader.example_data import load_preprocessed_data
-
-if TYPE_CHECKING:
-    from airflow.models import TaskInstance
+from {{cookiecutter.package_name}}.dataloader.example_data import \
+    load_preprocessed_data
+from {{cookiecutter.package_name}}.model_pipeline.example_model_pipeline import \
+    ModelPipelineModel
+from {{cookiecutter.package_name}}.models.example_model import get_model
+from {{cookiecutter.package_name}}.utils.utils import get_or_create_experiment
 
 load_dotenv()
 
@@ -49,7 +44,7 @@ class MnistTrainer:
         y_train = keras.utils.to_categorical(y_train, 10)
         y_test = keras.utils.to_categorical(y_test, 10)
 
-        mlflow.set_tracking_uri(os.getenv("J_MLFLOW_SERVER_URI"))
+        mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
         experiment_id = get_or_create_experiment("MNIST_Hyperparameter_Search_autolog")
         mlflow.set_experiment(experiment_id=experiment_id)
 
@@ -60,9 +55,14 @@ class MnistTrainer:
         keys, values = zip(*self.hyperparams.items())
         param_combinations = [dict(zip(keys, v)) for v in itertools.product(*values)]
         mlflow.autolog()
+
+        # Input shape that this model expects at predict() time
+        input_example = np.random.randint(0, 256, (28, 28, 1), dtype=np.uint8)
+
         with mlflow.start_run(run_name="mnist-hyperparameter-tuning-parent"):
             for params in param_combinations:
-                with mlflow.start_run(nested=True):
+                with mlflow.start_run(nested=True) as child_run:
+                    run_id = child_run.info.run_id
                     mlflow.log_param(key="data_source", value=self.s3_data_path)
 
                     optimizer = keras.optimizers.Adam(learning_rate=0.001)
@@ -84,79 +84,65 @@ class MnistTrainer:
                         best_accuracy = val_acc
                         best_model = self.model
                         best_params = params
+                        best_run_id = run_id
 
-                if best_model is not None:
-                    artifact_path = "mnist_model_final"
+        if best_model is not None:
+            artifact_path = "mnist_model_final"
 
-                    # Here we log our custom model that we created.
-                    # It is important that we pass the code_paths argument which
-                    # contains your package as mlflow needs to find the code that
-                    # it needs to run.
-                    # Please make sure that none of the __init__.py files are
-                    # completely empty as this creates some issues with
-                    # mlflow logging. You can literally just add a # to the
-                    # __init__ file. This is needed because while serializing
-                    # the files, empty files have 0 bytes of content and that
-                    # creates issues with the urllib3 upload to S3 (this
-                    # happens inside MLFlow)
-                    # The following checks whether you are running this code
-                    # from an Airflow worker or your local system to make sure
-                    # we have the right path
-                    if not os.getenv("AIRFLOW_HOME"):
-                        code_paths = ["../../{{ cookiecutter.package_name }}"]
-                    else:
-                        code_paths = ["{{ cookiecutter.package_name }}"]
-                    mlflow.pyfunc.log_model(
-                        python_model=ModelPipelineModel(self.model),
-                        artifact_path=artifact_path,
-                        # Code paths are required basically to package your
-                        # code along withe model if you have a custom model
-                        # that for e.g. might need a preprocessing script.
-                        # See here for more details:
-                        # https://mlflow.org/docs/latest/model/dependencies.html#id12
-                        code_paths=code_paths,
-                        # sometimes when you deploy and run your model
-                        # inference, you might get errors like Module Not
-                        # found, for those cases, you can specify the
-                        # libraries that your code needs. For e.g.,
-                        # in preprocess script, I need boto3, so I need to
-                        # specify it here.
-                        # You can also specify conda env instead of pip if
-                        # needed
-                        # See here for more details:
-                        # https://mlflow.org/docs/latest/python_api/mlflow.pyfunc.html#mlflow.pyfunc.log_model
-                        extra_pip_requirements=["boto3"]
-                    )
+            # Here we log our custom model that we created.
+            # It is important that we pass the code_paths argument which
+            # contains your package as mlflow needs to find the code that
+            # it needs to run.
+            # Please make sure that none of the __init__.py files are
+            # completely empty as this creates some issues with
+            # mlflow logging. You can literally just add a # to the
+            # __init__ file. This is needed because while serializing
+            # the files, empty files have 0 bytes of content and that
+            # creates issues with the urllib3 upload to S3 (this
+            # happens inside MLFlow)
 
-                    model_uri = mlflow.get_artifact_uri(artifact_path)
+            code_paths = ["{{ cookiecutter.package_name }}"]
+            with mlflow.start_run(run_id=best_run_id):
+                mlflow.pyfunc.log_model(
+                    python_model=ModelPipelineModel(self.model),
+                    artifact_path=artifact_path,
+                    # Code paths are required basically to package your
+                    # code along withe model if you have a custom model
+                    # that for e.g. might need a preprocessing script.
+                    # See here for more details:
+                    # https://mlflow.org/docs/latest/model/dependencies.html#id12
+                    code_paths=code_paths,
+                    # sometimes when you deploy and run your model
+                    # inference, you might get errors like Module Not
+                    # found, for those cases, you can specify the
+                    # libraries that your code needs. For e.g.,
+                    # in preprocess script, I need boto3, so I need to
+                    # specify it here.
+                    # You can also specify conda env instead of pip if
+                    # needed
+                    # See here for more details:
+                    # https://mlflow.org/docs/latest/python_api/mlflow.pyfunc.html#mlflow.pyfunc.log_model
+                    extra_pip_requirements=["boto3"],
+                    # MLflow automatically:
+                    # Infers the signature from your input example
+                    # Validates the model works with the example
+                    # Stores both signature and example with your model
+                    # Input examples provide crucial benefits: Read more here
+                    # https://mlflow.org/docs/latest/ml/model/signatures
+                    input_example=input_example
+                )
 
-                    print(f"Best model accuracy: {best_accuracy:.4f}")
-                    print("Best model params: ", best_params)
-                    print("Model stored at ", model_uri)
+            model_uri = f"runs:/{best_run_id}/{artifact_path}"
 
-        print("Training complete. Model logged in MLflow.")
+            print(f"Best model accuracy: {best_accuracy:.4f}")
+            print("Best model params: ", best_params)
+            print("Model stored at ", model_uri)
+
+            print("Training complete. Model logged in MLflow.")
+            return {"model_uri": model_uri}
 
 
-def example_train(ti: "TaskInstance"=None):
-    """
-    The argument `ti` provides a feature called `XCom` that means
-    Cross-Communications which facilitates sharing small amounts of data from
-    one task to another.
-    This argument is provided automatically by airflow to its tasks.
-    Since this will be one of the tasks in the Airlfow DAG, we can access it
-    here. But if you want to run this without airflow, you can remove the
-    Airflow related code.
-    See the usage below for ti.xcom_pull and to.xcom_push if you need to share
-    the data to downstream tasks or get the task from upstream tasks
-    respectively.
-    """
-
-    # Here we pull data from the preprocessing step that gives us the path to
-    # the stored data
-    preprocessed_path = ti.xcom_pull(task_ids="ml.preprocess_task",
-                                     key="preprocessed_path")
-    bucket_name = ti.xcom_pull(task_ids="ml.preprocess_task",
-                               key="bucket_name")
+def example_train(preprocessed_path: str, bucket_name: str):
     train_data, test_data, s3_data_path = load_preprocessed_data(preprocessed_path,
                                                     bucket_name)
     model = get_model()
@@ -169,10 +155,4 @@ def example_train(ti: "TaskInstance"=None):
                            trained_model_path=trained_model_path,
                            s3_data_path=s3_data_path)
 
-    trainer.train()
-
-if __name__ == "__main__":
-    # If you want to run this locally, please run these commands first:
-    # export MLFLOW_TRACKING_URI=http://localhost:5000
-    # export MLFLOW_S3_ENDPOINT_URL="http://localhost:9000"
-    example_train()
+    return trainer.train()

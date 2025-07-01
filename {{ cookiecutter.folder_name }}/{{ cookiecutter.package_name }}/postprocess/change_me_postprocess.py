@@ -15,7 +15,3 @@ def postprocess(data: Any):
     """
     # TODO: Implement postprocessing
     return data
-
-
-if __name__ == "__main__":
-    postprocessed_predictions = postprocess("some_data")

@@ -1,4 +1,9 @@
 Please delete me, I am just a placeholder for your actual data.
-If you have the data stored locally on your system, you can move it here so that the MLOps framework has access to it.
-If you are pulling it via S3 AWS, you can either store it here or use MinIO backend.
-You can also store the intermediate and final data after your preprocessing and feature engineering.
+
+If you have the data stored locally on your system, you can move it here so that the Gaiaflow framework has access to it.
+
+Although, it is recommended that you develop your package while testing with a small portion of the data by uploading
+it the local MinIO store that is created in the Gaiaflow framework.
+
+If you are pulling it via S3 AWS, it is recommended you pull and move some of it for testing and development to the
+MinIO backend.

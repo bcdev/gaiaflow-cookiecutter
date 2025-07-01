@@ -3,9 +3,10 @@
 
 from unittest.mock import MagicMock, patch
 
-import mlflow
+from {{cookiecutter.package_name}}.train.change_me_train import Trainer
 
-from {{ cookiecutter.package_name }}.train.change_me_train import Trainer
+# import mlflow
+
 
 
 def test_trainer_initialization():
@@ -44,14 +45,15 @@ def test_training_process(mock_log_model):
 
     trainer.train()
 
-    model.fit.assert_called_once_with(("X_train", "y_train"))
-
-    mock_log_model.assert_called_once()
-    _, kwargs = mock_log_model.call_args
-
-    assert isinstance(kwargs['python_model'], mlflow.pyfunc.PythonModel)
-    assert 'code_paths' in kwargs
-    assert 'extra_pip_requirements' in kwargs
+    # Enable these assertions once you have them in your code
+    # model.fit.assert_called_once_with(("X_train", "y_train"))
+    #
+    # mock_log_model.assert_called_once()
+    # _, kwargs = mock_log_model.call_args
+    #
+    # assert isinstance(kwargs['python_model'], mlflow.pyfunc.PythonModel)
+    # assert 'code_paths' in kwargs
+    # assert 'extra_pip_requirements' in kwargs
 
     # Add specific assertions for your training such as predict assertions,
     # mlflow logging assertions etc.

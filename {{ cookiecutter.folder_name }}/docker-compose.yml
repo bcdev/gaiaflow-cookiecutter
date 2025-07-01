@@ -9,26 +9,25 @@ x-airflow-common:
     AIRFLOW__CORE__EXECUTOR: ${CORE_EXECUTOR}
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW_DB_CONN}
     AIRFLOW__CORE__LOAD_EXAMPLES: ${LOAD_EXAMPLES}
-    MLFLOW_TRACKING_URI: ${MLFLOW_SERVER_URI}
-    {% if cookiecutter.use_minio == "yes" %}
+    MLFLOW_TRACKING_URI: http://mlflow:${MLFLOW_HOST_PORT}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
     AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
     MLFLOW_S3_ENDPOINT_URL: http://minio:${MINIO_PORT}
-    {% endif %}
     PYTHONPATH: /opt/airflow/{{ cookiecutter.package_name }}:/opt/airflow/dags:${PYTHONPATH}
-    PATH: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.folder_name }}/bin:${PATH}
+    PATH: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.folder_name }}/bin:/usr/bin:/bin:${PATH}
     LD_LIBRARY_PATH: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.folder_name }}/lib:/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
     AIRFLOW__CORE__DEFAULT_PYTHON_INTERPRETER: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.folder_name }}/bin/python
     PYTHONNOUSERSITE: 1
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
-    - ./scripts:/opt/airflow/scripts
     - ./data:/opt/airflow/data
     - ./{{ cookiecutter.package_name }}:/opt/airflow/{{ cookiecutter.package_name }}
-    {% if cookiecutter.use_minio == "no" %}
-    - ./${DEFAULT_ARTIFACT_ROOT}:/${DEFAULT_ARTIFACT_ROOT}
-    {% endif %}
+    - ./.env:/opt/airflow/.env
+    - ./kube_config_inline:/home/airflow/.kube/config
+
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
 
   depends_on:
     &airflow-common-depends-on
@@ -37,6 +36,7 @@ x-airflow-common:
 
   networks:
     - ml-network
+    - minikube-external-network
 
 services:
 
@@ -66,21 +66,13 @@ services:
       postgres-mlflow:
         condition: service_healthy
     command: mlflow ui -p ${MLFLOW_HOST_PORT} --host 0.0.0.0 
-            {% if cookiecutter.use_minio == "yes" %}
             --default-artifact-root s3://${MLFLOW_BUCKET_NAME} --artifacts-destination s3://${MLFLOW_BUCKET_NAME}
-            {% endif %}
             --backend-store-uri postgresql://mlflow:mlflow@postgres-mlflow/mlflow --serve-artifacts
-    {% if cookiecutter.use_minio == "no" %}
-    volumes:
-      - ./${DEFAULT_ARTIFACT_ROOT}:/${DEFAULT_ARTIFACT_ROOT}
-    {% endif %}
     environment:
-      MLFLOW_TRACKING_URI: ${MLFLOW_SERVER_URI}
-      {% if cookiecutter.use_minio == "yes" %}
+      MLFLOW_TRACKING_URI: http://mlflow:${MLFLOW_HOST_PORT}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       MLFLOW_S3_ENDPOINT_URL: http://minio:${MINIO_PORT}
-      {% endif %}
 
     restart: always
     networks:
@@ -140,19 +132,19 @@ services:
   airflow-init:
     container_name: airflow-init
     <<: *airflow-common
-    command: >
-      bash -c "
-      airflow db init &&
-      airflow db migrate &&
-      airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.org
-      "
+    command:
+      - "bash"
+      - "-c"
+      - |
+        airflow db init &&
+        airflow db migrate &&
+        airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.org
     restart: no
 
-  {% if cookiecutter.use_minio == "yes" %}
   minio:
     restart: always
     image: minio/minio
-    container_name: mlflow_s3
+    container_name: minio
     ports:
         - "9000:9000"
         - "9001:9001"
@@ -168,9 +160,7 @@ services:
       retries: 5
     networks:
       - ml-network
-  {% endif %}
 
-  {% if cookiecutter.use_minio == "yes" %}
   minio_client:
     image: minio/mc
     depends_on:
@@ -187,11 +177,14 @@ services:
         "
     networks:
       - ml-network
-  {% endif %}
 
 networks:
   ml-network:
     driver: bridge
+
+  minikube-external-network:
+    external: true
+    name: airflow
 
 volumes:
     postgres-db-volume-mlflow:

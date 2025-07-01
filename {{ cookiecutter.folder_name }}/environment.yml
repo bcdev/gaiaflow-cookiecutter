@@ -7,17 +7,12 @@ dependencies:
   - mlflow
   - psycopg2-binary
   - boto3
-  - airflow
+  - airflow < 3.0
   - apache-airflow-providers-cncf-kubernetes
   - jupyter
   - python-dotenv
   - git
   - fsspec
-  {% if cookiecutter.use_dag_factory == "yes" %}
-  - pip
-  - pip:
-    - dag_factory
-  {% endif %}
   {% if cookiecutter.show_examples == "yes" %}
   # This is only needed for an exmaple. If you dont need this, please feel free to remove it.
   - keras
@@ -29,4 +24,5 @@ dependencies:
   - pytest
   # Linting
   - ruff
+  - isort
   # add your libraries here

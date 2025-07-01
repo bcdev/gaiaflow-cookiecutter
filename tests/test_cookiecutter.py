@@ -5,8 +5,8 @@ import tempfile
 from itertools import product
 from typing import Any
 
-import yaml
 import pytest
+import yaml
 from cookiecutter.main import cookiecutter
 
 BASE_CONTEXT = {
@@ -19,14 +19,16 @@ BASE_CONTEXT = {
 }
 
 CORE_FILES = {
-    "mlops-run.sh",
+    "mlops_manager.py",
+    "minikube_manager.py",
+    "kube_config_inline",
+    "utils.py",
+    "docker_config.py",
     "docker-compose.yml",
     "README.md",
     ".env",
     ".gitignore",
-    "MLOps.md",
     "environment.yml",
-    "scripts/example_script",
     "dags/README.md",
     "dockerfiles/README.md",
     "dockerfiles/mlflow/requirements.txt",
@@ -35,7 +37,6 @@ CORE_FILES = {
     "notebooks/README.md",
     "notebooks/examples/mlflow_direct_inference.ipynb",
     "notebooks/examples/mlflow_local_deploy_inference.ipynb",
-    "notebooks/examples/mlfow_introduction.ipynb",
     "data/add_your_data_here",
     "my_package/README.md",
     "my_package/__init__.py",
@@ -55,22 +56,12 @@ CORE_FILES = {
     "my_package/preprocess/__init__.py",
 }
 
-
-DAG_FACTORY_FILES = [
-    "dags/change_me_config.yml",
-    "dags/change_me_generate_dags.py",
-]
-
-EXAMPLE_DAG_FACTORY_FILES = [
-    "dags/example_config.yml",
-]
-
 MANUAL_DAGS_FILES = [
-    "dags/change_me_dag.py",
+    "dags/change_me_task_factory_dag.py",
 ]
 
 EXAMPLE_MANUAL_DAGS_FILES = [
-    "dags/example_dag.py",
+    "dags/example_task_factory_dag.py",
 ]
 
 EXAMPLE_ML_PACKAGE_FILES = [
@@ -82,17 +73,10 @@ EXAMPLE_ML_PACKAGE_FILES = [
     "my_package/models/example_model.py",
 ]
 
-EXAMPLE_ML_PACAKGE_WITHOUT_MINIO = [
-    "my_package/dataloader/example_data_without_minio.py",
-    "my_package/preprocess/example_preprocess_without_minio.py",
-    "my_package/train/example_train_without_minio.py",
-]
 
 # Possible choices for each parameter to create combinations of them.
 PARAMETER_OPTIONS = {
-    "use_minio": ["yes", "no"],
     "show_examples": ["yes", "no"],
-    "use_dag_factory": ["yes", "no"],
 }
 
 
@@ -107,8 +91,6 @@ def generate_test_cases():
         context.update(dict(zip(param_names, values)))
 
         expects = {
-            "dag_factory": context["use_dag_factory"] == "yes",
-            "minio": context["use_minio"] == "yes",
             "examples": context["show_examples"] == "yes",
         }
 
@@ -154,21 +136,14 @@ def test_project_generation(temp_dir: str, test_case: dict[str, Any]):
 
     assert project_dir.exists(), "Project directory not created"
 
-    # Verify README content
     readme_content = (project_dir / "README.md").read_text(encoding="utf-8")
     assert context["project_name"] in readme_content, "Project name not in " "README"
 
-    # Check environment.yml content
     env_path = project_dir / "environment.yml"
     with env_path.open(encoding="utf-8") as f:
         env_data = yaml.safe_load(f)
         assert context["folder_name"] in env_data["name"], "Wrong environment name"
-        if expects["dag_factory"]:
-            assert {"pip": ["dag_factory"]} in env_data["dependencies"]
-        else:
-            assert {"pip": ["dag_factory"]} not in env_data["dependencies"]
 
-    # Check docker-compose.yml for Minio configuration
     docker_compose = (project_dir / "docker-compose.yml").read_text()
     minio_configs = [
         "MINIO_ROOT_USER",
@@ -178,80 +153,31 @@ def test_project_generation(temp_dir: str, test_case: dict[str, Any]):
         "MLFLOW_S3_ENDPOINT_URL",
     ]
     artifact_config = "--default-artifact-root s3://${MLFLOW_BUCKET_NAME} --artifacts-destination s3://${MLFLOW_BUCKET_NAME}"
-    local_artifacts = "- ./${DEFAULT_ARTIFACT_ROOT}:/${DEFAULT_ARTIFACT_ROOT}"
 
     for config in minio_configs:
-        assert (config in docker_compose) == expects["minio"]
-    if expects["minio"]:
-        assert artifact_config in docker_compose
-        assert local_artifacts not in docker_compose
-    else:
-        assert artifact_config not in docker_compose
-        assert local_artifacts in docker_compose
+        assert config in docker_compose
+    assert artifact_config in docker_compose
 
-    # Verify file structure
     actual_files = get_all_files(project_dir)
     core_files_copy = CORE_FILES.copy()
-    print("corefile", core_files_copy)
 
     if expects["examples"]:
-        if expects["dag_factory"]:
-            core_files_copy.update(EXAMPLE_DAG_FACTORY_FILES)
-        else:
-            core_files_copy.update(EXAMPLE_MANUAL_DAGS_FILES)
-        if expects["minio"]:
-            core_files_copy.update(EXAMPLE_ML_PACKAGE_FILES)
-        else:
-            core_files_copy.update(EXAMPLE_ML_PACAKGE_WITHOUT_MINIO)
+        core_files_copy.update(EXAMPLE_MANUAL_DAGS_FILES)
+        core_files_copy.update(EXAMPLE_ML_PACKAGE_FILES)
 
-    if expects["dag_factory"]:
-        core_files_copy.update(DAG_FACTORY_FILES)
-    else:
-        core_files_copy.update(MANUAL_DAGS_FILES)
+    core_files_copy.update(MANUAL_DAGS_FILES)
 
-    # Check core files
     for file in core_files_copy:
         assert file in actual_files, f"Missing core file: {file}"
 
-    # Check DAG-related files
-    if expects["dag_factory"]:
-        for file in DAG_FACTORY_FILES:
-            assert file in actual_files, f"Missing DAG factory file: {file}"
-        for file in MANUAL_DAGS_FILES:
-            assert file not in actual_files, f"Unexpected manual DAG file: {file}"
-    else:
-        for file in MANUAL_DAGS_FILES:
-            assert file in actual_files, f"Missing manual DAG file: {file}"
-        for file in DAG_FACTORY_FILES:
-            assert file not in actual_files, f"Unexpected DAG factory file: {file}"
+    for file in MANUAL_DAGS_FILES:
+        assert file in actual_files, f"Missing manual DAG file: {file}"
 
-    # Check examples related files
     if expects["examples"]:
-        if expects["dag_factory"]:
-            for file in EXAMPLE_DAG_FACTORY_FILES:
-                assert file in actual_files, f"Missing DAG factory example file{file}"
-            for file in EXAMPLE_MANUAL_DAGS_FILES:
-                assert (
-                    file not in actual_files
-                ), f"Unexpected manual example DAG file: {file}"
-        else:
-            for file in EXAMPLE_MANUAL_DAGS_FILES:
-                assert (
-                    file in actual_files
-                ), f"Unexpected manual example DAG file: {file}"
-            for file in EXAMPLE_DAG_FACTORY_FILES:
-                assert (
-                    file not in actual_files
-                ), f"Missing DAG factory example file{file}"
-
-        if expects["minio"]:
-            for file in EXAMPLE_ML_PACKAGE_FILES:
-                assert file in actual_files, f"Missing ML pacakge example file{file}"
-        else:
-            for file in EXAMPLE_ML_PACAKGE_WITHOUT_MINIO:
-                assert (
-                    file in actual_files
-                ), f"Missing ML pacakge without minio example file{file}"
+        for file in EXAMPLE_MANUAL_DAGS_FILES:
+            assert file in actual_files, f"Unexpected manual example DAG file: {file}"
+        for file in EXAMPLE_ML_PACKAGE_FILES:
+            assert file in actual_files, f"Missing ML pacakge example file{file}"
 
 
 @pytest.mark.parametrize("test_case", TEST_CASES)
