@@ -28,7 +28,6 @@ CORE_FILES = {
     "README.md",
     ".env",
     ".gitignore",
-    "MLOPS.md",
     "environment.yml",
     "dags/README.md",
     "dockerfiles/README.md",
