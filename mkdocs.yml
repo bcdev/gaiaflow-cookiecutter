@@ -6,10 +6,14 @@ copyright: Copyright &copy; 2025 Brockmann Consult
 
 nav:
   - Overview: index.md
+  - Getting Started: getting_started.md
+  - User guide - Dev: dev.md
+  - User guide - Prod and Prod_local: prod.md
+  - Tutorial: tutorial.md
+
 
 theme:
   name: material
-  logo: assets/gaiaflow.png
   # favicon: assets/logo-small.png
   palette:
     # Palette toggle for light mode
@@ -50,10 +54,6 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/bcdev/gaiaflow
-
-
-extra_css:
-  - stylesheets/xarray_dataset.css
 
 plugins:
   - search
