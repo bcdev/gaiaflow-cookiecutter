@@ -1,3 +1,23 @@
+## Changes in 0.2.0
+
+* Local MLOps now works on both Linux and Windows
+
+* Developed `task_factory` python abstraction to make it easier for users to create DAGs and test them in dev and prod_local env
+
+* Shell scripts migrated to testable Python scripts
+
+* Simplified the repository
+
+* Removed `dag_factory` as it gets complicated when trying to pass info between
+tasks, and task_factory was developed to make to solve that. 
+So, Gaiaflow will only support Python scripts based DAGs as of now.
+
+* Out-of-the-box working examples, tests, CI, change_me/example package (some work left)
+
+* New Mkdocs site available
+* Add `gh-deploy` CI
+
+
 ## Changes in 0.1.2
 
 ### Fixes
