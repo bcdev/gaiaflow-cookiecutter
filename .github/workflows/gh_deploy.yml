@@ -16,13 +16,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Miniconda
-        uses: conda-incubator/setup-miniconda@v3
-        with:
-          activate-environment: mkdocs-env
-          environment-file: env.yml
-          auto-activate-base: false
+      - name: Install requirements
+        run: pip install mkdocs mkdocs-material mkdocstrings mkdocstrings-python mkdocs-jupyter
 
       - name: Deploy to GitHub Pages
-        shell: bash -l
         run: mkdocs gh-deploy --force
