@@ -1,5 +1,6 @@
 import argparse
 import os
+import platform
 import socket
 import subprocess
 import sys
@@ -16,6 +17,7 @@ class MlopsManager:
         self.jupyter_port = jupyter_port
         self.delete_volume = delete_volume
         self.docker_build = docker_build
+        self.os_type = platform.system().lower()
 
         if action == "stop":
             self.cleanup()
@@ -37,8 +39,8 @@ class MlopsManager:
 
     def run(self, command: list, error: str):
         try:
-            return subprocess.check_call(command)
-        except subprocess.CalledProcessError:
+            subprocess.call(command)
+        except Exception:
             self.log(error)
             raise
 
@@ -83,8 +85,10 @@ class MlopsManager:
     @staticmethod
     def docker_services_for(component):
         services = {
-            "airflow": ["airflow-webserver", "airflow-scheduler", "airflow-init", "postgres-airflow"],
-            "mlflow": ["mlflow", "postgres-mlflow", "minio", "minio_client"],
+            "airflow": ["airflow-apiserver", "airflow-scheduler",
+                        "airflow-init", "airflow-dag-processor",
+                        "postgres-airflow", "minio", "minio_client"],
+            "mlflow": ["mlflow", "postgres-mlflow"],
         }
         return services.get(component, [])
 
@@ -119,27 +123,54 @@ class MlopsManager:
         cmd = ["jupyter", "lab", "--ip=0.0.0.0", f"--port={self.jupyter_port}"]
         subprocess.Popen(cmd)
 
+    def update_env_file_with_airflow_uid(self, env_path=".env"):
+        if self.os_type == "linux":
+            uid = str(os.getuid())
+        else:
+            uid = 50000
+
+        lines = []
+        if os.path.exists(env_path):
+            with open(env_path, "r") as f:
+                lines = f.readlines()
+
+        key_found = False
+        new_lines = []
+        for line in lines:
+            if line.strip().startswith("AIRFLOW_UID="):
+                new_lines.append(f"AIRFLOW_UID={uid}\n")
+                key_found = True
+            else:
+                new_lines.append(line)
+
+        if not key_found:
+            new_lines.append(f"AIRFLOW_UID={uid}\n")
+
+        with open(env_path, "w") as f:
+            f.writelines(new_lines)
+
+        print(f"Set AIRFLOW_UID={uid} in {env_path}")
+
     def start(self):
         self.log("Setting up directories...")
         self.create_directory("logs")
         self.create_directory("data")
+        self.update_env_file_with_airflow_uid()
 
         if self.service == "jupyter":
             self.check_port()
 
         if self.docker_build:
-            build_cmd = ["docker", "compose", "build"]
+            build_cmd = ["build"]
             if not self.cache:
                 build_cmd.append("--no-cache")
             self.log("Building Docker images")
-            self.run(build_cmd, "Error during Docker build")
+            self.docker_compose_action(build_cmd, self.service)
 
         if self.service == "jupyter":
             self.start_jupyter()
         else:
             self.docker_compose_action(["up", "-d"], service=self.service)
-
-        self.log("MLOps service started!")
 
 
 def main():

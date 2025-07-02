@@ -85,28 +85,30 @@ class TestMlopsManager(unittest.TestCase):
     def test_docker_services_for(self):
         self.assertEqual(
             MlopsManager.docker_services_for("airflow"),
-            ["airflow-webserver", "airflow-scheduler", "airflow-init", "postgres-airflow"],
+            ["airflow-apiserver", "airflow-scheduler", "airflow-init",
+             "airflow-dag-processor", "postgres-airflow", "minio",
+             "minio_client"],
         )
         self.assertEqual(MlopsManager.docker_services_for("none"), [])
 
-    @patch("subprocess.check_call")
-    def test_docker_compose_action_all(self, mock_check_call):
+    @patch("subprocess.call")
+    def test_docker_compose_action_all(self, mock_call):
         self.manager.docker_compose_action(["up", "-d"])
-        mock_check_call.assert_called_once()
+        mock_call.assert_called_once()
 
-    @patch("subprocess.check_call")
-    def test_docker_compose_action_with_service(self, mock_check_call):
+    @patch("subprocess.call")
+    def test_docker_compose_action_with_service(self, mock_call):
         self.manager.service = "mlflow"
         self.manager.docker_compose_action(["up", "-d"], "mlflow")
-        self.assertTrue(mock_check_call.called)
+        self.assertTrue(mock_call.called)
 
     def test_docker_compose_action_with_invalid_service(self):
         with self.assertRaises(SystemExit):
             self.manager.docker_compose_action(["up", "-d"], "unknown_service")
 
-    @patch("subprocess.check_call")
+    @patch("subprocess.call")
     @patch("psutil.process_iter", return_value=[])
-    def test_cleanup_jupyter(self, mock_iter, mock_check_call):
+    def test_cleanup_jupyter(self, mock_iter, mock_call):
         manager = MlopsManager(
             action=None,
             service="jupyter",
@@ -117,60 +119,60 @@ class TestMlopsManager(unittest.TestCase):
         )
         manager.cleanup()
         self.assertTrue(mock_iter.called)
-        mock_check_call.assert_not_called()
+        mock_call.assert_not_called()
 
-    @patch("subprocess.check_call")
-    def test_cleanup_with_volume(self, mock_check_call):
+    @patch("subprocess.call")
+    def test_cleanup_with_volume(self, mock_call):
         self.manager.service = "mlflow"
         self.manager.delete_volume = True
         self.manager.cleanup()
-        mock_check_call.assert_called_with(
-            ["docker", "compose", "down", "-v", "mlflow", 'postgres-mlflow', "minio", "minio_client"]
+        mock_call.assert_called_with(
+            ["docker", "compose", "down", "-v", "mlflow", 'postgres-mlflow']
         )
 
-    @patch("subprocess.check_call")
-    def test_cleanup_without_volume(self, mock_check_call):
+    @patch("subprocess.call")
+    def test_cleanup_without_volume(self, mock_call):
         self.manager.service = "mlflow"
         self.manager.delete_volume = False
         self.manager.cleanup()
-        mock_check_call.assert_called_with(
-            ["docker", "compose", "down", "mlflow", 'postgres-mlflow', "minio", "minio_client"]
+        mock_call.assert_called_with(
+            ["docker", "compose", "down", "mlflow", 'postgres-mlflow']
         )
 
     @patch("subprocess.Popen")
-    @patch("subprocess.check_call")
+    @patch("subprocess.call")
     @patch("socket.socket.connect_ex", return_value=1)
-    def test_start_jupyter(self, mock_connect, mock_check_call, mock_popen):
+    def test_start_jupyter(self, mock_connect, mock_call, mock_popen):
         self.manager.service = "jupyter"
         self.manager.start()
         mock_popen.assert_called_once()
 
-    @patch("subprocess.check_call")
+    @patch("subprocess.call")
     @patch("subprocess.Popen")
-    def test_start_service_without_build(self, mock_popen, mock_check_call):
+    def test_start_service_without_build(self, mock_popen, mock_call):
         self.manager.service = "mlflow"
         self.manager.docker_build = False
         self.manager.start()
-        self.assertTrue(mock_check_call.called)
+        self.assertTrue(mock_call.called)
         mock_popen.assert_not_called()
 
-    @patch("subprocess.check_call")
-    def test_start_with_build_and_cache(self, mock_check_call):
+    @patch("subprocess.call")
+    def test_start_with_build_and_cache(self, mock_call):
         self.manager.docker_build = True
         self.manager.cache = True
         self.manager.service = "mlflow"
         self.manager.start()
-        mock_check_call.assert_any_call(["docker", "compose", "build", "mlflow", "postgres-mlflow", "minio", "minio_client"])
-        mock_check_call.assert_any_call(["docker", "compose", "up", "-d", "mlflow", "postgres-mlflow", "minio", "minio_client"])
+        mock_call.assert_any_call(["docker", "compose", "build", "mlflow", "postgres-mlflow"])
+        mock_call.assert_any_call(["docker", "compose", "up", "-d", "mlflow", "postgres-mlflow"])
 
-    @patch("subprocess.check_call")
-    def test_start_with_build_no_cache(self, mock_check_call):
+    @patch("subprocess.call")
+    def test_start_with_build_no_cache(self, mock_call):
         self.manager.docker_build = True
         self.manager.cache = False
         self.manager.service = "mlflow"
         self.manager.start()
-        mock_check_call.assert_any_call(["docker", "compose", "build", "--no-cache", "mlflow", "postgres-mlflow", "minio", "minio_client"])
-        mock_check_call.assert_any_call(["docker", "compose", "up", "-d", "mlflow", "postgres-mlflow", "minio", "minio_client"])
+        mock_call.assert_any_call(["docker", "compose", "build", "--no-cache", "mlflow", "postgres-mlflow"])
+        mock_call.assert_any_call(["docker", "compose", "up", "-d", "mlflow", "postgres-mlflow"])
 
     @patch("sys.argv", ["mlops_manager.py", "--start"])
     @patch.object(MlopsManager, "__init__", return_value=None)

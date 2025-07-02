@@ -1,7 +1,7 @@
 import subprocess
 import unittest
 from pathlib import Path
-from unittest.mock import ANY, mock_open, patch
+from unittest.mock import ANY, mock_open, patch, call
 
 import pytest
 from minikube_manager import MinikubeManager, main
@@ -42,7 +42,7 @@ class TestMinikubeManager(unittest.TestCase):
 
     @patch.object(MinikubeManager, "error")
     def test_run_with_exception_calls_error(self, mock_error):
-        with patch("subprocess.check_call", side_effect=subprocess.CalledProcessError(1, ["fake"])):
+        with patch("subprocess.call", side_effect=subprocess.CalledProcessError(1, ["fake"])):
             self.manager.run(["fake"], "Failed!")
             mock_error.assert_called_once_with("Failed!")
 
@@ -65,26 +65,26 @@ class TestMinikubeManager(unittest.TestCase):
         mock_init.assert_called_once()
         self.assertTrue(mock_init.call_args.kwargs["build_only"])
 
-    @patch('subprocess.check_call')
-    def test_run_success(self, mock_check_call):
+    @patch('subprocess.call')
+    def test_run_success(self, mock_call):
         manager = MinikubeManager()
-        mock_check_call.return_value = 0
+        mock_call.return_value = 0
         manager.run(["echo", "hello"], "Error executing command")
-        mock_check_call.assert_called_with(["echo", "hello"], env=None)
+        mock_call.assert_called_with(["echo", "hello"], env=None)
 
-    @patch('subprocess.check_call')
-    def test_run_error(self, mock_check_call):
+    @patch('subprocess.call')
+    def test_run_error(self, mock_call):
         manager = MinikubeManager()
-        mock_check_call.side_effect = subprocess.CalledProcessError(1, "echo")
+        mock_call.side_effect = subprocess.CalledProcessError(1, "echo")
         with self.assertRaises(SystemExit):
             manager.run(["echo", "hello"], "Error executing command")
 
-    @patch('subprocess.check_call')
+    @patch('subprocess.call')
     @patch('subprocess.run')
-    def test_start(self, mock_subprocess_run, mock_check_call):
+    def test_start(self, mock_subprocess_run, mock_call):
         manager = MinikubeManager()
 
-        mock_check_call.return_value = None
+        mock_call.return_value = None
         mock_subprocess_run.return_value.returncode = 0
 
         with patch.object(manager, 'start_minikube') as mock_start_minikube, \
@@ -126,35 +126,41 @@ class TestMinikubeManager(unittest.TestCase):
                 "Error starting minikube profile [airflow]"
             )
 
-    @patch('subprocess.check_call')
-    def test_stop_minikube(self, mock_check_call):
+    @patch('subprocess.call')
+    def test_stop_minikube(self, mock_call):
         manager = MinikubeManager()
         manager.stop_minikube()
-        mock_check_call.assert_called_with(
-            ["minikube", "stop", "--profile", manager.minikube_profile],
-            env=ANY
+        call_args_list = mock_call.call_args_list
+        print(call_args_list)
+        self.assertEqual(
+            call_args_list[0],
+            call(['minikube', 'stop', '--profile', 'airflow'], env=None)
+                         )
+        self.assertEqual(
+            call_args_list[1],
+            call(["minikube", "delete", "--profile", "airflow"], env=None),
         )
 
     @patch('subprocess.run')
-    @patch('subprocess.check_call')
-    def test_build_docker_image(self, mock_check_call, mock_subprocess_run):
+    @patch('subprocess.call')
+    def test_build_docker_image(self, mock_call, mock_subprocess_run):
         manager = MinikubeManager()
         mock_subprocess_run.return_value.stdout = b"export DOCKER_TLS_VERIFY=\"1\"\nexport DOCKER_HOST=\"tcp://127.0.0.1:2376\""
         manager.build_docker_image()
-        mock_check_call.assert_called_with(
+        mock_call.assert_called_with(
             ["docker", "build", "-t", manager.docker_image_name, "."],
             env=ANY
         )
 
-    @patch('subprocess.check_call')
+    @patch('subprocess.call')
     @patch('subprocess.check_output')
-    def test_create_kube_config_inline(self, mock_check_output, mock_check_call):
+    def test_create_kube_config_inline(self, mock_check_output, mock_call):
         manager = MinikubeManager()
         mock_check_output.return_value = b"minikube kubeconfig"
         with patch('pathlib.Path.home', return_value=Path("C:/Users/test")):
             with patch('builtins.open', mock_open(read_data='{"dummy config"}')):
                 manager.create_kube_config_inline()
-        mock_check_call.assert_called_with(
+        mock_call.assert_called_with(
             [
                 "minikube", "kubectl", "--", "config", "view", "--flatten", "--minify", "--raw"
             ],

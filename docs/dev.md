@@ -43,6 +43,7 @@ Any files or folders marked with `^` can be extended, but carefully.
 ├── utils.py *           # Utility function to get the minikube gateway IP required for testing.
 ├── docker_config.py *   # Utility function to get the docker image name based on your project.
 ├── kube_config_inline * # This file is needed for Airflow to communicate with Minikube when testing locally in a prod env.
+├── airflow_test.cfg *   # This file is needed for testing your airflow dags.
 ├── Dockerfile  ^        # Dockerfile for your package.
 └── dockerfiles/ *       # Dockerfiles required by Docker compose
 ```
@@ -125,10 +126,11 @@ Then start the MLOps services using:
 python mlops_mananger.py --start -b
 ```
 
-NOTE: When you run this for the first time, make sure you use the `-b` flag as
-it builds the images for the first time as shown above.
-Next time when you start it again, you start it without the flag as it saves 
-time by not building the same images again:
+
+
+**NOTE**: The `-b` flag only needs to be used for the first time. 
+For consecutive starts
+and restarts, use the same command as above but without `-b` flag.
 
 
 ### 3. Accessing the services
@@ -275,6 +277,9 @@ mlflow logging. You can literally just add a `#` to the
 the files, empty files have 0 bytes of content and that
 creates issues with the urllib3 upload to S3 (this
 happens inside MLFlow)
+- If there are any errors in using the Minikube manager, try restarting it
+by `python minikube_manager.py --restart` followed by 
+`python mlops_manager.py --restart` to make sure that the changes are synced.
 
 
 

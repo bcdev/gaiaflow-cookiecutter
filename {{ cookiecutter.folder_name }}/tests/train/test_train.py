@@ -25,8 +25,7 @@ def test_trainer_initialization():
     assert trainer.hyperparams == hyperparams
     assert trainer.trained_model_path == model_path
 
-@patch('{{ cookiecutter.package_name }}.train.change_me_train.mlflow.pyfunc.log_model')
-def test_training_process(mock_log_model):
+def test_training_process():
     model = MagicMock()
     model.fit = MagicMock()
     model.predict = MagicMock(return_value=[0, 1, 0])
@@ -44,16 +43,6 @@ def test_training_process(mock_log_model):
     )
 
     trainer.train()
-
-    # Enable these assertions once you have them in your code
-    # model.fit.assert_called_once_with(("X_train", "y_train"))
-    #
-    # mock_log_model.assert_called_once()
-    # _, kwargs = mock_log_model.call_args
-    #
-    # assert isinstance(kwargs['python_model'], mlflow.pyfunc.PythonModel)
-    # assert 'code_paths' in kwargs
-    # assert 'extra_pip_requirements' in kwargs
 
     # Add specific assertions for your training such as predict assertions,
     # mlflow logging assertions etc.

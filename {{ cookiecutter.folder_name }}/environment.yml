@@ -6,15 +6,17 @@ dependencies:
   - python >3.10,<3.13
   - mlflow
   - psycopg2-binary
+  - asyncpg
   - boto3
-  - airflow < 3.0
+  - airflow
   - apache-airflow-providers-cncf-kubernetes
+  - apache-airflow-providers-fab
   - jupyter
   - python-dotenv
   - git
   - fsspec
   {% if cookiecutter.show_examples == "yes" %}
-  # This is only needed for an exmaple. If you dont need this, please feel free to remove it.
+  # This is only needed for the examples. If you don't need this, please feel free to remove it.
   - keras
   - tensorflow
   - numpy =2.0.2
