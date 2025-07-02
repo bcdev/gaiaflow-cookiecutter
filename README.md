@@ -106,7 +106,9 @@ Any files or folders marked with `^` can be extended, but carefully.
 ├── utils.py *           # Utility function to get the minikube gateway IP required for testing.
 ├── docker_config.py *   # Utility function to get the docker image name based on your project.
 ├── kube_config_inline * # This file is needed for Airflow to communicate with Minikube when testing locally in a prod env.
-└── dockerfiles/ *       # Dockerfiles and compose files
+├── airflow_test.cfg *   # This file is needed for testing your airflow dags.
+├── Dockerfile  ^        # Dockerfile for your package.
+└── dockerfiles/ *       # Dockerfiles required by Docker compose
 ```
 
 
@@ -253,7 +255,7 @@ Once the pre-requisites are done, you can go ahead with the project creation:
 When prompted for input, enter the details requested. If you dont provide any 
 input for a given choice, the first choice from the list is taken as the default.
 
-Once the project is created, please read the README.md from that.
+Once the project is created, please read the [user guide](https://bcdev.github.io/gaiaflow/dev/).
 
 
 ## Troubleshooting
