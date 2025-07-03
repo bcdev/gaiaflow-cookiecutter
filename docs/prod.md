@@ -173,26 +173,28 @@ per project by any team member of that project)
 - Make sure you change the `task_factory` mode to `prod`.
 - Contact the CDR maintainers and ask them to add your repository as a 
   `submodule` (They will know what to do!)
+- Create a `PYPI_API_TOKEN` from the PyPi website and add it as a secret to the 
+repository.
+- Do the same with `CODECOV_TOKEN` from the CodeCov website.
+- Create a Personal Access Token from your account (make sure your account is a 
+member of the bcdev org for this to work).
 
-  - Create a Personal Access Token from your account (make sure your account is a 
-  member of the bcdev org for this to work).
-
-       Do as follows:
+     Do as follows:
   
-       - Go to your Github account Settings
-       - Navigate to `<> Developer Settings` (the last button on the page)
-       - Create a `Personal access token (classic)`
-       - See the image below for reference:
+     - Go to your Github account Settings
+     - Navigate to `<> Developer Settings` (the last button on the page)
+     - Create a `Personal access token (classic)`
+     - See the image below for reference:
    
-       - Only click on the `repo` permissions
-       - Create the token
-       - Copy and keep it safe somewhere (maybe on KeePassXC)
-       - Now, navigate to your newly created project, create a new Secret
-           - Go to Repository settings
-             - Navigate to `Secrets and Variables -> Actions -> New repository secret`
-             - In the `Name` field, insert `CDR_PAT`
-             - In the `Secret` field, insert your token that generated a few moments ago
-           - Click on `Add Secret`  
+     - Only click on the `repo` permissions
+     - Create the token
+     - Copy and keep it safe somewhere (maybe on KeePassXC)
+     - Now, navigate to your newly created project, create a new Secret
+         - Go to Repository settings
+           - Navigate to `Secrets and Variables -> Actions -> New repository secret`
+           - In the `Name` field, insert `CDR_PAT`
+           - In the `Secret` field, insert your token that generated a few moments ago
+         - Click on `Add Secret`  
 
 - Now you are ready to deploy your dags to the production Airflow.
 

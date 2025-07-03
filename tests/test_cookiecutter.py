@@ -23,7 +23,7 @@ CORE_FILES = {
     "minikube_manager.py",
     "kube_config_inline",
     "utils.py",
-    "docker_config.py",
+    "docker_image_name_generator.py",
     "docker-compose.yml",
     "README.md",
     ".env",

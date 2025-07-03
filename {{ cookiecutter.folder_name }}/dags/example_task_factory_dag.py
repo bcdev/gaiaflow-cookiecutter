@@ -62,10 +62,10 @@ with DAG(
             func_path="{{ cookiecutter.package_name }}.example_preprocess",
             func_kwargs={"dummy_arg": "hello world"},
 
-            # For prod_local and prod mode only
-            # When you run the ./prod_local_setup.sh as shown above, it will also
-            # create a docker image from your package with your environment.yml.
-            # Please put the image name below
+            # # For prod_local and prod mode only
+            # You must run the `python minikube_manager.py --build-only`, it will then
+            # create a docker image to run your package with all the dependencies included.
+            # Please update the image name below:
             image="<your-image-name>",
             secrets=["my-minio-creds"],
             env_vars={

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from docker_config import DOCKER_IMAGE_NAME
+from docker_image_name_generator import DOCKER_IMAGE_NAME
 
 
 class MinikubeManager:
@@ -42,7 +42,7 @@ class MinikubeManager:
 
     def run(self, command: list, error: str, env=None):
         try:
-            return subprocess.check_call(command, env=env)
+            subprocess.call(command, env=env)
         except subprocess.CalledProcessError:
             self.error(error)
 
@@ -128,7 +128,7 @@ class MinikubeManager:
 
         self.log("Creating kube config inline file...")
         with open(filename, "w") as f:
-            subprocess.check_call(
+            subprocess.call(
                 [
                     "minikube",
                     "kubectl",

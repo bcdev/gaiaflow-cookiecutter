@@ -2,7 +2,15 @@
 
 [![Unittest Gaiaflow](https://github.com/bcdev/gaiaflow/actions/workflows/unittest.yml/badge.svg)](https://github.com/bcdev/gaiaflow/actions/workflows/unittest.yml)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v0.json)](https://github.com/charliermarsh/ruff)
+[![Docs](https://img.shields.io/badge/docs-mkdocs-blue)](https://bcdev.github.io/gaiaflow/)
+![Static Badge](https://img.shields.io/badge/Airflow-3.0-8A2BE2?logo=apacheairflow)
+![Static Badge](https://img.shields.io/badge/MLFlow-darkblue?logo=mlflow)
+![Static Badge](https://img.shields.io/badge/MinIO-red?logo=minio)
+![Static Badge](https://img.shields.io/badge/Jupyter-grey?logo=jupyter)
+![Static Badge](https://img.shields.io/badge/Minikube-lightblue?logo=kubernetes)
+
 ![Gaiaflow](assets/gaiaflow.png)
+
 
 <sub>(Image created using ChatGPT)</sub>
 
@@ -98,7 +106,9 @@ Any files or folders marked with `^` can be extended, but carefully.
 ├── utils.py *           # Utility function to get the minikube gateway IP required for testing.
 ├── docker_config.py *   # Utility function to get the docker image name based on your project.
 ├── kube_config_inline * # This file is needed for Airflow to communicate with Minikube when testing locally in a prod env.
-└── dockerfiles/ *       # Dockerfiles and compose files
+├── airflow_test.cfg *   # This file is needed for testing your airflow dags.
+├── Dockerfile  ^        # Dockerfile for your package.
+└── dockerfiles/ *       # Dockerfiles required by Docker compose
 ```
 
 
@@ -245,7 +255,7 @@ Once the pre-requisites are done, you can go ahead with the project creation:
 When prompted for input, enter the details requested. If you dont provide any 
 input for a given choice, the first choice from the list is taken as the default.
 
-Once the project is created, please read the README.md from that.
+Once the project is created, please read the [user guide](https://bcdev.github.io/gaiaflow/dev/).
 
 
 ## Troubleshooting
@@ -322,3 +332,16 @@ If you face any other problems not mentioned above, please reach out to us.
 - [Minio](https://min.io/docs/minio/container/index.html)
 - [JupyterLab](https://jupyterlab.readthedocs.io/)
 - [Minikube](https://minikube.sigs.k8s.io/docs/)
+
+
+### TODO:
+
+Make ECR work. How to add credentials?
+
+S3 credentials access?
+
+Add sensor based DAGs
+
+Make CI unittest using conda instead
+
+Update CI to use ECR credentials.

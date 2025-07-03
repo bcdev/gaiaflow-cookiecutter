@@ -6,9 +6,17 @@ x-airflow-common:
     context: .
     dockerfile: ${AIRFLOW_DOCKERFILE}
   environment:
+    &airflow-common-env
+    AIRFLOW__CORE__AUTH_MANAGER: "airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://airflow-apiserver:8080/execution/'
     AIRFLOW__CORE__EXECUTOR: ${CORE_EXECUTOR}
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW_DB_CONN}
+    AIRFLOW__CORE__FERNET_KEY: ''
+#    NOTE: The following secret can be commited to .git as it is only for local development.
+    AIRFLOW__API_AUTH__JWT_SECRET: 'dkWAUJ756yP9oJhTXhG0nj-wTvRJMoSTioGFHECuO0k'
     AIRFLOW__CORE__LOAD_EXAMPLES: ${LOAD_EXAMPLES}
+    AIRFLOW__LOGGING__LOGGING_LEVEL: 'DEBUG'
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW_DB_CONN}
     MLFLOW_TRACKING_URI: http://mlflow:${MLFLOW_HOST_PORT}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
     AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
@@ -18,6 +26,7 @@ x-airflow-common:
     LD_LIBRARY_PATH: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.folder_name }}/lib:/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
     AIRFLOW__CORE__DEFAULT_PYTHON_INTERPRETER: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.folder_name }}/bin/python
     PYTHONNOUSERSITE: 1
+  user: "${AIRFLOW_UID:-50000}:0"
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
@@ -95,17 +104,32 @@ services:
     networks:
       - ml-network
 
-  airflow-webserver:
-    container_name: airflow-webserver
+  airflow-apiserver:
     <<: *airflow-common
-    command: webserver
+    command: api-server
     ports:
       - ${AIRFLOW_WEBSERVER_PORT:-8080}:8080
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
-      interval: 10s
+      test: [ "CMD", "curl", "--fail", "http://localhost:8080/api/v2/version" ]
+      interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
+    healthcheck:
+      test: [ "CMD-SHELL", 'airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"' ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
@@ -132,13 +156,112 @@ services:
   airflow-init:
     container_name: airflow-init
     <<: *airflow-common
+    entrypoint: /bin/bash
+    # yamllint disable rule:line-length
     command:
-      - "bash"
       - "-c"
       - |
-        airflow db init &&
-        airflow db migrate &&
-        airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.org
+        echo "=== FORCING USER CREATION ==="
+        echo "Airflow's auth manager check is broken on windows, creating user manually..."
+        
+        # Create the user directly, bypassing the broken auth manager check
+        /entrypoint airflow users create \
+            --username "${_AIRFLOW_WWW_USER_USERNAME:-admin}" \
+            --firstname "Admin" \
+            --lastname "User" \
+            --role "Admin" \
+            --email "admin@example.com" \
+            --password "${_AIRFLOW_WWW_USER_PASSWORD:-admin}" \
+            --verbose || echo "User creation failed or user already exists"
+        
+        echo "=== USER CREATION COMPLETED ==="
+        python -c "import airflow.providers.fab.auth_manager.fab_auth_manager; print('FAB provider imported successfully')"
+        python -c "from airflow.configuration import conf; print('Detected auth manager:', conf.get('core', 'auth_manager'))"
+        if [[ -z "${AIRFLOW_UID}" ]]; then
+        echo
+        echo -e "\033[1;33mWARNING!!!: AIRFLOW_UID not set!\e[0m"
+        echo "If you are on Linux, you SHOULD follow the instructions below to set "
+        echo "AIRFLOW_UID environment variable, otherwise files will be owned by root."
+        echo "For other operating systems you can get rid of the warning with manually created .env file:"
+        echo "    See: https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#setting-the-right-airflow-user"
+        echo
+        export AIRFLOW_UID=$(id -u)
+        fi
+        one_meg=1048576
+        mem_available=$$(($$(getconf _PHYS_PAGES) * $$(getconf PAGE_SIZE) / one_meg))
+        cpus_available=$$(grep -cE 'cpu[0-9]+' /proc/stat)
+        disk_available=$$(df / | tail -1 | awk '{print $$4}')
+        warning_resources="false"
+        if (( mem_available < 4000 )) ; then
+        echo
+        echo -e "\033[1;33mWARNING!!!: Not enough memory available for Docker.\e[0m"
+        echo "At least 4GB of memory required. You have $$(numfmt --to iec $$((mem_available * one_meg)))"
+        echo
+        warning_resources="true"
+        fi
+        if (( cpus_available < 2 )); then
+        echo
+        echo -e "\033[1;33mWARNING!!!: Not enough CPUS available for Docker.\e[0m"
+        echo "At least 2 CPUs recommended. You have $${cpus_available}"
+        echo
+        warning_resources="true"
+        fi
+        if (( disk_available < one_meg * 10 )); then
+        echo
+        echo -e "\033[1;33mWARNING!!!: Not enough Disk space available for Docker.\e[0m"
+        echo "At least 10 GBs recommended. You have $$(numfmt --to iec $$((disk_available * 1024 )))"
+        echo
+        warning_resources="true"
+        fi
+        if [[ $${warning_resources} == "true" ]]; then
+        echo
+        echo -e "\033[1;33mWARNING!!!: You have not enough resources to run Airflow (see above)!\e[0m"
+        echo "Please follow the instructions to increase amount of resources available:"
+        echo "   https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#before-you-begin"
+        echo
+        fi
+        echo
+        echo "Creating missing opt dirs if missing:"
+        echo
+        mkdir -v -p /opt/airflow/{logs,dags,plugins,config}
+        echo
+        echo "Airflow version:"
+        /entrypoint airflow version
+        echo
+        echo "Files in shared volumes:"
+        echo
+        ls -la /opt/airflow/{logs,dags,plugins,config}
+        echo
+        echo "Running airflow config list to create default config file if missing."
+        echo
+        /entrypoint airflow config list >/dev/null
+        echo
+        echo "Files in shared volumes:"
+        echo
+        ls -la /opt/airflow/{logs,dags,plugins,config}
+        echo
+        echo "Change ownership of files in /opt/airflow to ${AIRFLOW_UID}:0"
+        echo
+        chown -R "${AIRFLOW_UID}:0" /opt/airflow/
+        echo
+        echo "Change ownership of files in shared volumes to ${AIRFLOW_UID}:0"
+        echo
+        chown -v -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins,config}
+        echo
+        echo "Files in shared volumes:"
+        echo
+        ls -la /opt/airflow/{logs,dags,plugins,config}
+
+    # yamllint enable rule:line-length
+    environment:
+      <<: *airflow-common-env
+      _AIRFLOW_DB_MIGRATE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-admin}
+      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-admin}
+      _PIP_ADDITIONAL_REQUIREMENTS: ''
+      AIRFLOW__CORE__AUTH_MANAGER: "airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager"
+    user: "0:0"
     restart: no
 
   minio:

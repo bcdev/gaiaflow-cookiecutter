@@ -18,8 +18,6 @@ DAGs.
 - For testing purposes, you can trigger them manually. If you would like to also manually trigger them for your workflow
 you can!
 - But if you want your DAG to run periodically, setting the start_date and schedule is important.
-- NOTE: By default, if you set a `start_date` in the past, Airflow will try to backfill all those runs. To avoid that,
-use catchup=False inside the dag definitions.
 
 
 ## Common parameters used while defining a DAG
