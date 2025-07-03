@@ -332,3 +332,16 @@ If you face any other problems not mentioned above, please reach out to us.
 - [Minio](https://min.io/docs/minio/container/index.html)
 - [JupyterLab](https://jupyterlab.readthedocs.io/)
 - [Minikube](https://minikube.sigs.k8s.io/docs/)
+
+
+### TODO:
+
+Make ECR work. How to add credentials?
+
+S3 credentials access?
+
+Add sensor based DAGs
+
+Make CI unittest using conda instead
+
+Update CI to use ECR credentials.

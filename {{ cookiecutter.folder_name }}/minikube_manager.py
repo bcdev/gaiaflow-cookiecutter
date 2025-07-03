@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from docker_config import DOCKER_IMAGE_NAME
+from docker_image_name_generator import DOCKER_IMAGE_NAME
 
 
 class MinikubeManager:

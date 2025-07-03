@@ -112,7 +112,7 @@ with DAG(
             # create a docker image to run your package with all the dependencies included.
             # Please update the image name below:
             # TODO: Talk with Tejas to align on image naming.
-            image="my-local-image/my-package:0.0.1",
+            image="<your-image-name>",
 
             # TODO: Discuss with Tejas about a process for creating secrets
             secrets=["my-minio-creds"],
@@ -149,7 +149,7 @@ with DAG(
                 },
             },
 
-            image="my-local-image/my-package:0.0.1",
+            image="<your-image-name>",
             secrets=["my-minio-creds"],
             env_vars={
                 "MLFLOW_TRACKING_URI": f"http://{MINIKUBE_GATEWAY}:5000",
@@ -174,7 +174,7 @@ with DAG(
                     "key": "return_value",
                 },
             },
-            image="my-local-image/my-package:0.0.1",
+            image="<your-image-name>",
             secrets=["my-minio-creds"],
             env_vars={
                 "MLFLOW_TRACKING_URI": f"http://{MINIKUBE_GATEWAY}:5000",
@@ -187,35 +187,4 @@ with DAG(
     trainer >> predictor
 
 
-# TODO:
-#  [DONE] Update ti.xcom code with simple return dict statements.
-#  [DONE] Update the cookiecutter so that it allows using Airflow standalone (
-#  without
-#  MLOps) for projects requiring only Airflow.
-#  Make ECR work. How to add credentials?
-#  [DONE]Make sure task factory works out of the box when new projects are
-#  created.
-#  [DONE]Add tests for Airflow dags.
-#  [DONE]Update the documentation stating that we should only return simple
-#  objects from the
-#  main function that airflow needs to execute.
-#  [DONE]Update documentation providing best practices while working with
-#  Docker (
-#  cleanup images on registry, local etc.)
-#  S3 credentials access?
-#  Add sensor based DAGs
-#  [DONE] Add version.py in package
-#  [DONE] Improve change_me_train.py and other files.
-#  Make CI unittest using conda instead
-#  Update CI to use ECR credentials.
-#  Run ruff, isort.
-#  [done] Update documentation also including, restarting airflow service after
-#  env update. now possible using --restart
-#  [done] after starting prod, restart airflow containers.
-#  [done] on windows, run pytest --ignore=logs and before that run set
-#  [done] AIRFLOW_CONFIG=%cd%\airflow_test.cfg
-#  check jupyter notebooks if they work to be sure.
-#  [DONE] add task_factory tutorial
-#  [DONE] write up about the architecture
-#  [DONE] check all files and readmes once more.
-#  [DONE] update the architecture diagram in main README
+

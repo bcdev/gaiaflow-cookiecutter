@@ -7,7 +7,7 @@ x-airflow-common:
     dockerfile: ${AIRFLOW_DOCKERFILE}
   environment:
     &airflow-common-env
-    AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    AIRFLOW__CORE__AUTH_MANAGER: "airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager"
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://airflow-apiserver:8080/execution/'
     AIRFLOW__CORE__EXECUTOR: ${CORE_EXECUTOR}
@@ -161,6 +161,22 @@ services:
     command:
       - "-c"
       - |
+        echo "=== FORCING USER CREATION ==="
+        echo "Airflow's auth manager check is broken on windows, creating user manually..."
+        
+        # Create the user directly, bypassing the broken auth manager check
+        /entrypoint airflow users create \
+            --username "${_AIRFLOW_WWW_USER_USERNAME:-admin}" \
+            --firstname "Admin" \
+            --lastname "User" \
+            --role "Admin" \
+            --email "admin@example.com" \
+            --password "${_AIRFLOW_WWW_USER_PASSWORD:-admin}" \
+            --verbose || echo "User creation failed or user already exists"
+        
+        echo "=== USER CREATION COMPLETED ==="
+        python -c "import airflow.providers.fab.auth_manager.fab_auth_manager; print('FAB provider imported successfully')"
+        python -c "from airflow.configuration import conf; print('Detected auth manager:', conf.get('core', 'auth_manager'))"
         if [[ -z "${AIRFLOW_UID}" ]]; then
         echo
         echo -e "\033[1;33mWARNING!!!: AIRFLOW_UID not set!\e[0m"
@@ -244,6 +260,7 @@ services:
       _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-admin}
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-admin}
       _PIP_ADDITIONAL_REQUIREMENTS: ''
+      AIRFLOW__CORE__AUTH_MANAGER: "airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager"
     user: "0:0"
     restart: no
 
