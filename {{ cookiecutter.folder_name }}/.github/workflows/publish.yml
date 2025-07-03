@@ -16,14 +16,14 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-      { % raw % }
+      {% raw %}
       - name: Set up MicroMamba and install dependencies with Python ${{ matrix.python-version }}
         uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: environment.yml
           create-args: >-
             python=${{ matrix.python-version }}
-      { % endraw % }
+      {% endraw %}
       - name: Lint with ruff
         run: |
           ruff check
@@ -43,9 +43,9 @@ jobs:
         with:
           fail_ci_if_error: true
           verbose: true
-          { % raw % }
+          {% raw %}
           token: ${{ secrets.CODECOV_TOKEN }}
-          { % endraw % }
+          {% endraw %}
 
   PyPi-Deploy:
     name: Publish {{ cookiecutter.package_name }} Package to PyPI
