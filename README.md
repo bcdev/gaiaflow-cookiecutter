@@ -342,6 +342,10 @@ S3 credentials access?
 
 Add sensor based DAGs
 
-Make CI unittest using conda instead
-
 Update CI to use ECR credentials.
+
+How to share Secrets?
+
+Monitoring Airflow
+
+MLFlow Deployment
