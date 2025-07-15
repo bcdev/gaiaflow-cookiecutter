@@ -73,6 +73,8 @@ First, we need to initialize a Git repository to make the initial commit.
   git commit -m "Initial commit"
 ```
 
+NOTE: Please make sure you have the latest Git CLI installed.
+
 Next, create a repository in Github. Once created, copy the remote repository 
 URL. Open the terminal with this project as the current working directory.
 Then, replace the REMOTE-URL with your repo's URL on Github
@@ -98,7 +100,7 @@ To proceed, create a new branch and start working in it.
 You can update the `environment.yml` to include your libraries, or you can 
 update them later as well.
 ```bash
-  mamba env create
+  mamba env create -f environment.yml
   mamba activate <your-env-name>
 ```
 
