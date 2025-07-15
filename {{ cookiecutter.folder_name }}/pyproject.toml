@@ -92,3 +92,9 @@ filterwarnings = [
   "ignore::UserWarning",
   "ignore::RuntimeWarning"
 ]
+
+
+[project.scripts]
+mlops_manager = "tools.mlops_manager:main"
+minikube_manager = "tools.minikube_manager:main"
+utils = "tools.utils:main"

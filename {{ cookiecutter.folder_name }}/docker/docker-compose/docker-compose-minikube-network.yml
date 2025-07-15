@@ -1,0 +1,45 @@
+# 🚨 WARNING: Changes to this file may break local deployments. Consult the team before modifying! 🚨
+
+x-airflow-common:
+  &airflow-common
+  networks:
+    - minikube-external-network
+
+services:
+
+  postgres-mlflow:
+    networks:
+      - minikube-external-network
+
+  mlflow:
+    networks:
+      - minikube-external-network
+
+  postgres-airflow:
+    networks:
+      - minikube-external-network
+
+  airflow-apiserver:
+    <<: *airflow-common
+
+  airflow-dag-processor:
+    <<: *airflow-common
+
+  airflow-scheduler:
+    <<: *airflow-common
+
+  airflow-init:
+    <<: *airflow-common
+
+  minio:
+    networks:
+      - minikube-external-network
+
+  minio_client:
+    networks:
+      - minikube-external-network
+
+networks:
+  minikube-external-network:
+    external: true
+    name: airflow

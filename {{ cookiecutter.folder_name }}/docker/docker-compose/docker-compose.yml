@@ -1,39 +1,39 @@
-# 🚨 WARNING: Changes to this file may break deployments. Consult the team before modifying! 🚨
+# 🚨 WARNING: Changes to this file may break local deployments. Consult the team before modifying! 🚨
 
 x-airflow-common:
   &airflow-common
   build:
-    context: .
-    dockerfile: ${AIRFLOW_DOCKERFILE}
+    context: ../../
+    dockerfile: "./docker/airflow/Dockerfile"
   environment:
     &airflow-common-env
     AIRFLOW__CORE__AUTH_MANAGER: "airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager"
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://airflow-apiserver:8080/execution/'
-    AIRFLOW__CORE__EXECUTOR: ${CORE_EXECUTOR}
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__CORE__FERNET_KEY: ''
-#    NOTE: The following secret can be commited to .git as it is only for local development.
+    # NOTE: The following secret can be commited to .git as it is only for local development.
     AIRFLOW__API_AUTH__JWT_SECRET: 'dkWAUJ756yP9oJhTXhG0nj-wTvRJMoSTioGFHECuO0k'
-    AIRFLOW__CORE__LOAD_EXAMPLES: ${LOAD_EXAMPLES}
+    AIRFLOW__CORE__LOAD_EXAMPLES: false
     AIRFLOW__LOGGING__LOGGING_LEVEL: 'DEBUG'
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW_DB_CONN}
-    MLFLOW_TRACKING_URI: http://mlflow:${MLFLOW_HOST_PORT}
-    AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-    AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-    MLFLOW_S3_ENDPOINT_URL: http://minio:${MINIO_PORT}
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow/airflow
+    MLFLOW_TRACKING_URI: http://mlflow:5000
+    AWS_ACCESS_KEY_ID: minio
+    AWS_SECRET_ACCESS_KEY: minio123
+    MLFLOW_S3_ENDPOINT_URL: http://minio:9000
     PYTHONPATH: /opt/airflow/{{ cookiecutter.package_name }}:/opt/airflow/dags:${PYTHONPATH}
-    PATH: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.folder_name }}/bin:/usr/bin:/bin:${PATH}
-    LD_LIBRARY_PATH: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.folder_name }}/lib:/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
-    AIRFLOW__CORE__DEFAULT_PYTHON_INTERPRETER: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.folder_name }}/bin/python
+    PATH: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.package_name }}/bin:/usr/bin:/bin:${PATH}
+    LD_LIBRARY_PATH: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.package_name }}/lib:/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
+    AIRFLOW__CORE__DEFAULT_PYTHON_INTERPRETER: /home/airflow/.local/share/mamba/envs/{{ cookiecutter.package_name }}/bin/python
     PYTHONNOUSERSITE: 1
   user: "${AIRFLOW_UID:-50000}:0"
   volumes:
-    - ./dags:/opt/airflow/dags
-    - ./logs:/opt/airflow/logs
-    - ./data:/opt/airflow/data
-    - ./{{ cookiecutter.package_name }}:/opt/airflow/{{ cookiecutter.package_name }}
-    - ./.env:/opt/airflow/.env
-    - ./kube_config_inline:/home/airflow/.kube/config
+    - ../../dags:/opt/airflow/dags
+    - ../../logs:/opt/airflow/logs
+    - ../../data:/opt/airflow/data
+    - ../../{{ cookiecutter.package_name }}:/opt/airflow/{{ cookiecutter.package_name }}
+    - ../../.env:/opt/airflow/.env
+    - ../kube_config_inline:/home/airflow/.kube/config
 
   extra_hosts:
     - "host.docker.internal:host-gateway"
@@ -45,17 +45,16 @@ x-airflow-common:
 
   networks:
     - ml-network
-    - minikube-external-network
 
 services:
 
   postgres-mlflow:
-    image: ${POSTGRES_IMAGE}
+    image: postgres:13
     container_name: postgres-mlflow
     environment:
-      POSTGRES_USER: ${POSTGRES_MLFLOW_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_MLFLOW_PWD}
-      POSTGRES_DB: ${POSTGRES_MLFLOW_DB}
+      POSTGRES_USER: mlflow
+      POSTGRES_PASSWORD: mlflow
+      POSTGRES_DB: mlflow
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "mlflow" ]
       interval: 5s
@@ -67,28 +66,28 @@ services:
       - ml-network
 
   mlflow:
-    build: ${MLFLOW_DOCKERFILE}
+    build: "./docker/mlflow"
     container_name: mlflow
     ports:
-      - ${MLFLOW_HOST_PORT:-5000}:5000
+      - 5000:5000
     depends_on:
       postgres-mlflow:
         condition: service_healthy
-    command: mlflow ui -p ${MLFLOW_HOST_PORT} --host 0.0.0.0 
-            --default-artifact-root s3://${MLFLOW_BUCKET_NAME} --artifacts-destination s3://${MLFLOW_BUCKET_NAME}
+    command: mlflow ui -p 5000 --host 0.0.0.0 
+            --default-artifact-root s3://mlflow --artifacts-destination s3://mlflow
             --backend-store-uri postgresql://mlflow:mlflow@postgres-mlflow/mlflow --serve-artifacts
     environment:
-      MLFLOW_TRACKING_URI: http://mlflow:${MLFLOW_HOST_PORT}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      MLFLOW_S3_ENDPOINT_URL: http://minio:${MINIO_PORT}
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      AWS_ACCESS_KEY_ID: minio
+      AWS_SECRET_ACCESS_KEY: minio123
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
 
     restart: always
     networks:
       - ml-network
 
   postgres-airflow:
-    image: ${POSTGRES_IMAGE}
+    image: postgres:13
     container_name: postgres-airflow
     environment:
       POSTGRES_USER: airflow
@@ -108,7 +107,7 @@ services:
     <<: *airflow-common
     command: api-server
     ports:
-      - ${AIRFLOW_WEBSERVER_PORT:-8080}:8080
+      - 8080:8080
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8080/api/v2/version" ]
       interval: 30s
@@ -135,6 +134,7 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+
 
   airflow-scheduler:
     container_name: airflow-scheduler
@@ -163,7 +163,7 @@ services:
       - |
         echo "=== FORCING USER CREATION ==="
         echo "Airflow's auth manager check is broken on windows, creating user manually..."
-        
+
         # Create the user directly, bypassing the broken auth manager check
         /entrypoint airflow users create \
             --username "${_AIRFLOW_WWW_USER_USERNAME:-admin}" \
@@ -173,7 +173,7 @@ services:
             --email "admin@example.com" \
             --password "${_AIRFLOW_WWW_USER_PASSWORD:-admin}" \
             --verbose || echo "User creation failed or user already exists"
-        
+
         echo "=== USER CREATION COMPLETED ==="
         python -c "import airflow.providers.fab.auth_manager.fab_auth_manager; print('FAB provider imported successfully')"
         python -c "from airflow.configuration import conf; print('Detected auth manager:', conf.get('core', 'auth_manager'))"
@@ -273,9 +273,8 @@ services:
         - "9001:9001"
     command: server /data --console-address ':9001' --address ':9000'
     environment:
-        - MINIO_ROOT_USER=${AWS_ACCESS_KEY_ID}
-        - MINIO_ROOT_PASSWORD=${AWS_SECRET_ACCESS_KEY}
-    volumes:
+        - MINIO_ROOT_USER=minio
+        - MINIO_ROOT_PASSWORD=minio123
         - minio_data:/data
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]
@@ -291,10 +290,10 @@ services:
         condition: service_healthy
     container_name: minio_client
     env_file:
-        - .env
+        - ../../.env
     entrypoint: >
         /bin/sh -c "
-        /usr/bin/mc alias set minio http://minio:9000 ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY} &&
+        /usr/bin/mc alias set minio http://minio:9000 minio minio123 &&
         /usr/bin/mc mb minio/mlflow;
         exit 0;
         "
@@ -304,10 +303,6 @@ services:
 networks:
   ml-network:
     driver: bridge
-
-  minikube-external-network:
-    external: true
-    name: airflow
 
 volumes:
     postgres-db-volume-mlflow:

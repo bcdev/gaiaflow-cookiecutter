@@ -1,4 +1,3 @@
-import argparse
 import os
 import platform
 import shutil
@@ -7,9 +6,11 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+import typer
 
 import yaml
-from docker_image_name_generator import DOCKER_IMAGE_NAME
+
+from .gen_docker_image_name import DOCKER_IMAGE_NAME
 
 
 class MinikubeManager:
@@ -41,8 +42,10 @@ class MinikubeManager:
         sys.exit(1)
 
     def run(self, command: list, error: str, env=None):
+        if env is None:
+            env = os.environ
         try:
-            subprocess.call(command, env=env)
+            subprocess.run(command, env=env, check=True)
         except subprocess.CalledProcessError:
             self.error(error)
 
@@ -57,24 +60,24 @@ class MinikubeManager:
             )
             if b"Running" in result.stdout:
                 self.log(f"Minikube cluster [{self.minikube_profile}] is already running.")
-                return
         except subprocess.CalledProcessError:
             self.log(f"Minikube cluster [{self.minikube_profile}] is not running. Starting...")
 
-        self.run(
-            [
-                "minikube",
-                "start",
-                "--profile",
-                self.minikube_profile,
-                "--driver=docker",
-                "--cpus=4",
-                "--memory=4g",
-            ],
-            f"Error starting minikube profile [{self.minikube_profile}]"
-        )
+            self.run(
+                [
+                    "minikube",
+                    "start",
+                    "--profile",
+                    self.minikube_profile,
+                    "--driver=docker",
+                    "--cpus=4",
+                    "--memory=4g",
+                ],
+                f"Error starting minikube profile [{self.minikube_profile}]"
+            )
 
         self.create_kube_config_inline()
+        self.restart_docker_compose()
 
     def stop_minikube(self):
         self.log(f"Stopping minikube profile [{self.minikube_profile}]...")
@@ -108,7 +111,8 @@ class MinikubeManager:
     def create_kube_config_inline(self):
         kube_config = Path.home() / ".kube" / "config"
         backup_config = kube_config.with_suffix(".backup")
-        filename = "kube_config_inline"
+        print("pwd", os.getcwd())
+        filename = "../kube_config_inline"
 
         if self.os_type == "windows" and kube_config.exists():
             self.log("Detected Windows: patching kube config with host.docker.internal")
@@ -146,7 +150,7 @@ class MinikubeManager:
 
         self.log(f"Adding insecure-skip-tls-verfiy for local setup in kube config inline file {filename}")
 
-        with open("kube_config_inline", "r") as f:
+        with open(filename, "r") as f:
             kube_config_data = yaml.safe_load(f)
 
         if self.os_type == "windows":
@@ -156,7 +160,7 @@ class MinikubeManager:
                     cluster_data["insecure-skip-tls-verify"] = True
 
         self.log(f"Saving kube config inline file {filename}")
-        with open("kube_config_inline", "w") as f:
+        with open(filename, "w") as f:
             yaml.safe_dump(kube_config_data, f, default_flow_style=False)
 
         if self.os_type == "windows" and backup_config.exists():
@@ -212,35 +216,53 @@ class MinikubeManager:
         )
         self.log(f"Minikube cluster [{self.minikube_profile}] is ready!")
 
+    def restart_docker_compose(self):
+        self.log("Restarting Docker Compose services...")
+        self.run(["docker", "compose", "-f",
+                  "docker/docker-compose/docker-compose.yml", "down"],
+                 "Error running docker compose down")
+        self.run(["docker", "compose", "-f",
+                        "docker/docker-compose/docker-compose.yml", "-f",
+                        "docker/docker-compose/docker-compose-minikube-network.yml",
+                        "up", "-d"], "Error running docker compose up")
 
-def main():
-    parser = argparse.ArgumentParser(description="Minikube manager")
+app = typer.Typer()
 
-    group = parser.add_mutually_exclusive_group(required=True)
+@app.command()
+def manage(
+    stop: bool = typer.Option(False, "--stop", "-s", help="Stop minikube cluster"),
+    restart: bool = typer.Option(False, "--restart", "-r", help="Restart minikube cluster"),
+    start: bool = typer.Option(False, "--start", help="Start minikube cluster"),
+    build_only: bool = typer.Option(False, "--build-only", help="Only build docker image inside minikube"),
+    create_config_only: bool = typer.Option(False, "--create-config-only", help="Create inline config for Docker compose."),
+    create_secrets: bool = typer.Option(False, "--create-secrets", help="Create secrets for pods (Deprecated)"),
+):
+    print("pwd", os.getcwd())
+    manager = MinikubeManager()
 
-    group.add_argument("-s", "--stop", action="store_true", help="Stop minikube cluster")
-    group.add_argument("-r", "--restart", action="store_true", help="Restart minikube cluster")
-    group.add_argument("--start", action="store_true", help="Start minikube cluster")
-    group.add_argument("--build-only", action="store_true", help="Only build docker image inside minikube")
-    group.add_argument("--create-config-only", action="store_true", help="Create inline config for using it in Docker compose.")
-    # TODO: Remove this
-    group.add_argument("--create-secrets", action="store_true", help="Create secrets for using it in your pods. Will be removed")
+    if stop:
+        manager.stop_minikube()
+    elif restart:
+        manager.stop_minikube()
+        manager.start_minikube()
+    elif start:
+        manager.start_minikube()
+    elif build_only:
+        manager.build_docker_image()
+    elif create_config_only:
+        manager.create_kube_config_inline()
 
-    args = parser.parse_args()
-    manager = MinikubeManager(
-        stop=args.stop,
-        restart=args.restart,
-        start=args.start,
-        build_only=args.build_only,
-        create_config_only = args.create_config_only
-    )
-    if args.create_secrets:
-        manager.create_secrets(secret_name="my-minio-creds",
+    if create_secrets:
+        manager.create_secrets(
+            secret_name="my-minio-creds",
             secret_data={
                 "AWS_ACCESS_KEY_ID": "minio",
                 "AWS_SECRET_ACCESS_KEY": "minio123",
-            },)
+            },
+        )
 
+def main():
+    app()
 
 if __name__ == "__main__":
-    main()
+    app()

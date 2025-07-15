@@ -1,12 +1,16 @@
-import argparse
 import os
 import platform
 import socket
 import subprocess
 import sys
 from datetime import datetime
+from enum import Enum
+from pathlib import Path
 
 import psutil
+
+import typer
+from typing import List, Optional, Literal
 
 
 class MlopsManager:
@@ -18,6 +22,8 @@ class MlopsManager:
         self.delete_volume = delete_volume
         self.docker_build = docker_build
         self.os_type = platform.system().lower()
+        current_dir = Path(__file__).resolve().parent
+        self.project_root = current_dir
 
         if action == "stop":
             self.cleanup()
@@ -87,15 +93,18 @@ class MlopsManager:
         services = {
             "airflow": ["airflow-apiserver", "airflow-scheduler",
                         "airflow-init", "airflow-dag-processor",
-                        "postgres-airflow", "minio", "minio_client"],
+                        "postgres-airflow"],
             "mlflow": ["mlflow", "postgres-mlflow"],
+            "minio": ["minio", "minio_client"]
         }
         return services.get(component, [])
 
     def docker_compose_action(self, actions, service=None):
-        base_cmd = ["docker", "compose"]
+        base_cmd = ["docker", "compose", "-f",
+                    "docker/docker-compose/docker-compose.yml"]
         if service:
             services = MlopsManager.docker_services_for(service)
+            print("Services:::", services, service)
             if not services:
                 self.handle_error(f"Unknown service: {service}")
             cmd = base_cmd + actions + services
@@ -108,6 +117,13 @@ class MlopsManager:
     def cleanup(self):
         self.log("Shutting down Gaiaflow services...")
         if self.service == "jupyter":
+            self.stop_jupyter()
+        elif self.service is None:
+            down_cmd = ["down"]
+            if self.delete_volume:
+                self.log("Removing volumes with shutdown")
+                down_cmd.append("-v")
+            self.docker_compose_action(down_cmd, self.service)
             self.stop_jupyter()
         else:
             down_cmd = ["down"]
@@ -153,54 +169,84 @@ class MlopsManager:
 
     def start(self):
         self.log("Setting up directories...")
-        self.create_directory("logs")
-        self.create_directory("data")
+        self.create_directory("../logs")
+        self.create_directory("../data")
         self.update_env_file_with_airflow_uid()
 
-        if self.service == "jupyter":
+        if self.service == "jupyter" or self.service is None:
             self.check_port()
 
         if self.docker_build:
             build_cmd = ["build"]
             if not self.cache:
                 build_cmd.append("--no-cache")
+
             self.log("Building Docker images")
             self.docker_compose_action(build_cmd, self.service)
 
-        if self.service == "jupyter":
+        if self.service is None:
+            # self.start_jupyter()
+            self.docker_compose_action(["up", "-d"], service=None)
+        elif self.service == "jupyter":
             self.start_jupyter()
         else:
             self.docker_compose_action(["up", "-d"], service=self.service)
 
+app = typer.Typer(help="Gaiaflow: MLOps Environment Launcher")
+
+class Action(str, Enum):
+    start = "start"
+    stop = "stop"
+    restart = "restart"
+
+class Service(str, Enum):
+    airflow = "airflow"
+    mlflow = "mlflow"
+    minio = "minio"
+    jupyter = "jupyter"
+
+@app.command()
+def manage(
+    action: Action = typer.Argument(..., help="Action to perform", show_choices=True),
+    service: List[Service] = typer.Option(None, "--service", "-s", help="Services to manage. Use multiple --service flags, or leave empty to run all."),
+    cache: bool = typer.Option(False, "--cache", "-c", help="Use Docker cache"),
+    jupyter_port: int = typer.Option(8895, "--jupyter-port", "-j", help="Port for JupyterLab"),
+    delete_volume: bool = typer.Option(False, "--delete-volume", "-v", help="Delete volumes on shutdown"),
+    docker_build: bool = typer.Option(False, "--docker-build", "-b", help="Force Docker image build"),
+):
+    """
+    Start, stop, or restart selected MLOps services.
+    """
+    allowed_actions = {"start", "stop", "restart"}
+    if action not in allowed_actions:
+        typer.echo(f"Invalid action '{action}'. Must be one of: {', '.join(allowed_actions)}")
+        raise typer.Exit(1)
+    typer.echo(f"Selected services: {service}")
+    print("cwd::", os.getcwd())
+    if service:
+        for s in service:
+            typer.echo(f"Running {action} on {s}...")
+            MlopsManager(
+                action=action,
+                service=s,
+                cache=cache,
+                jupyter_port=jupyter_port,
+                delete_volume=delete_volume,
+                docker_build=docker_build,
+            )
+    else:
+        typer.echo(f"Running {action} with all services")
+        MlopsManager(
+            action=action,
+            service=None,
+            cache=cache,
+            jupyter_port=jupyter_port,
+            delete_volume=delete_volume,
+            docker_build=docker_build,
+        )
 
 def main():
-    parser = argparse.ArgumentParser(description="Gaiaflow: MLOps Environment Launcher")
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--start", action="store_true", help="Start services")
-    group.add_argument("--stop", action="store_true", help="Stop services")
-    group.add_argument("--restart", action="store_true", help="Restart services")
-
-    parser.add_argument(
-        "--service", choices=["airflow", "mlflow", "jupyter"], help="Service to start/stop/restart"
-    )
-    parser.add_argument("-c", "--cache", action="store_true", help="Enable Docker cache")
-    parser.add_argument("-j", "--jupyter-port", type=int, default=8895, help="Jupyter port")
-    parser.add_argument("-v", "--delete-volume", action="store_true", help="Delete volumes on shutdown")
-    parser.add_argument("-b", "--docker-build", action="store_true", help="Force Docker build")
-
-    args = parser.parse_args()
-
-    action = "start" if args.start else "stop" if args.stop else "restart"
-
-    MlopsManager(
-        action=action,
-        service=args.service,
-        cache=args.cache,
-        jupyter_port=args.jupyter_port,
-        delete_volume=args.delete_volume,
-        docker_build=args.docker_build,
-    )
-
+    app()
 
 if __name__ == "__main__":
-    main()
+    app()

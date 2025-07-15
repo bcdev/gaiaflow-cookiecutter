@@ -1,6 +1,8 @@
 import re
 import subprocess
+import typer
 
+app = typer.Typer()
 
 def docker_network_gateway(network_name: str = "airflow") -> str | None:
     try:
@@ -28,5 +30,16 @@ def docker_network_gateway(network_name: str = "airflow") -> str | None:
         print("Docker command not found. Is Docker installed and in your PATH?")
         return None
 
-if __name__ == "__main__":
-    docker_network_gateway()
+
+@app.command()
+def manage(
+    dng: bool = typer.Option(
+        False, "--dng", help="Get Docker network gateway for 'airflow' network"
+    ),
+    network_name: str = typer.Option("airflow", "--network-name", help="Docker network name"),
+):
+    if dng:
+        docker_network_gateway(network_name)
+
+def main():
+    app()
