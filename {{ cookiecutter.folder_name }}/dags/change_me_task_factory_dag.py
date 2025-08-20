@@ -4,16 +4,12 @@
 
 # NOTE: Please delete all these comments once you have understood how to use me.
 
-import os
-import sys
 from datetime import datetime
 
 from airflow import DAG
 from airflow.utils.task_group import TaskGroup
-
-# Please do not remove the following line.
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from task_factory import task_factory
+from gaiaflow.core.create_task import create_task
+from gaiaflow.core.operators import FromTask
 
 # We use `task_factory`, a wrapper developed at BC on top of Airflow operators, to
 # make it easy for users to create DAGs and switch between different environments.
@@ -24,7 +20,7 @@ from task_factory import task_factory
 # https://github.com/bcdev/gaiaflow/issues
 
 # Define the environment here. It can either be `dev`, `prod` or `prod_local`.
-ENVIRONMENT = "dev"
+MODE = "dev"
 
 # TODO (User Action Required):
 # Please look for change me's below and update them as needed.
@@ -93,12 +89,12 @@ with DAG(
     # it, but of course you can.
     with TaskGroup(group_id="change_group_id",
                    tooltip="Change what appears in the tooltip") as trainer:
-        preprocess = task_factory(
+        preprocess = create_task(
             # Unique ID of the task. Feel free to change it.
             task_id="preprocess_data",
             # This argument expects the path to your function that you want
             # to execute. It should be available in the  __init__.py of your package.
-            func_path="{{ cookiecutter.package_name }}.preprocess",
+            func_path="{{ cookiecutter.package_name }}:preprocess",
             # This argument expects that you provide all the arguments that your
             # function as defined in `func_path` expects.
             # If your function depends on another function (from a different task), you should use
@@ -106,16 +102,17 @@ with DAG(
             func_kwargs={
                 "path": "dummmy_path"
             },
-
+            dag=dag,
             # # For prod_local and prod mode only
             # You must run the `python minikube_manager.py --build-only`, it will then
             # create a docker image to run your package with all the dependencies included.
             # Please update the image name below:
             # TODO: Talk with Tejas to align on image naming.
-            image="<your-image-name>",
+            # image="<your-image-name>",
+            image="gaiaflow_test_pl:v17",
 
             # TODO: Discuss with Tejas about a process for creating secrets
-            secrets=["my-minio-creds"],
+            # secrets=["my-minio-creds"],
 
             # The following argument can be used to pass in environment variables that your
             # package might need. In the `dev` mode, you can use the .env file to pass your environment
@@ -132,59 +129,65 @@ with DAG(
             # fast for testing and development.
             # The image field is only required when you want to run the DAG in
             # production (prod) or production-like (prod-like) setting.
-            env=ENVIRONMENT,
+            mode=MODE,
         )
 
-        train = task_factory(
+        train = create_task(
             task_id="train",
-            func_path="{{ cookiecutter.package_name }}.train",
-            xcom_pull_tasks={
-                "preprocessed_path": {
-                    "task": "change_group_id.preprocess_data",
-                    "key": "return_value",
-                },
-                "bucket_name": {
-                    "task": "change_group_id.preprocess_data",
-                    "key": "return_value"
-                },
+            func_path="{{ cookiecutter.package_name }}:train",
+            func_args=[
+                "meow",
+                FromTask(
+                    task="change_group_id.preprocess_data", key="preprocessed_path"
+                ),
+            ],
+            func_kwargs={
+                "preprocessed_path": FromTask(
+                    task="change_group_id.preprocess_data", key="preprocessed_path"
+                ),
+                "bucket_name": FromTask(
+                    task="change_group_id.preprocess_data", key="bucket_name"
+                ),
             },
 
-            image="<your-image-name>",
-            secrets=["my-minio-creds"],
+            # image="<your-image-name>",
+            image="gaiaflow_test_pl:v17>",
+            # secrets=["my-minio-creds"],
             env_vars={
                 "MLFLOW_TRACKING_URI": f"http://{MINIKUBE_GATEWAY}:5000",
                 "MLFLOW_S3_ENDPOINT_URL": f"http://{MINIKUBE_GATEWAY}:9000",
             },
 
-            env=ENVIRONMENT,
+            mode=MODE,
+            dag=dag,
         )
 
         # This bit operator shows the task dependencies.
         preprocess >> train
 
-    with TaskGroup(group_id="change_me_group_id_2",
-                   tooltip="Change what appears in the tooltip 2") as predictor:
-        predict = task_factory(
-            task_id="predict",
-            func_path="{{ cookiecutter.package_name }}.predict",
-            # Pull model_uri output from the train task
-            xcom_pull_tasks={
-                "model_uri": {
-                    "task": "change_group_id.train",
-                    "key": "return_value",
-                },
-            },
-            image="<your-image-name>",
-            secrets=["my-minio-creds"],
-            env_vars={
-                "MLFLOW_TRACKING_URI": f"http://{MINIKUBE_GATEWAY}:5000",
-                "MLFLOW_S3_ENDPOINT_URL": f"http://{MINIKUBE_GATEWAY}:9000",
-            },
-
-            env=ENVIRONMENT,
-        )
-
-    trainer >> predictor
+    # with TaskGroup(group_id="change_me_group_id_2",
+    #                tooltip="Change what appears in the tooltip 2") as predictor:
+    #     predict = task_factory(
+    #         task_id="predict",
+    #         func_path="{{ cookiecutter.package_name }}.predict",
+    #         # Pull model_uri output from the train task
+    #         xcom_pull_tasks={
+    #             "model_uri": {
+    #                 "task": "change_group_id.train",
+    #                 "key": "return_value",
+    #             },
+    #         },
+    #         image="<your-image-name>",
+    #         secrets=["my-minio-creds"],
+    #         env_vars={
+    #             "MLFLOW_TRACKING_URI": f"http://{MINIKUBE_GATEWAY}:5000",
+    #             "MLFLOW_S3_ENDPOINT_URL": f"http://{MINIKUBE_GATEWAY}:9000",
+    #         },
+    #
+    #         env=ENVIRONMENT,
+    #     )
+    #
+    # trainer >> predictor
 
 
 
