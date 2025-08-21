@@ -1,3 +1,13 @@
+## Changes in 0.3.0
+
+* Airflow 3.0 is now supported.
+
+* Bug fixes and test improvements
+
+* Enhanced documentation
+
+* Update generated project CI's
+
 ## Changes in 0.2.0
 
 * Local MLOps now works on both Linux and Windows
