@@ -30,14 +30,15 @@ is available [here](https://bcdev.github.io/gaiaflow/)
 The architecture below describes what we want to achieve as our MLOps framework.
 This is taken from the [Google Cloud Architecture Centre](https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning#mlops_level_2_cicd_pipeline_automation)
 
-Currently what we support is the shown as green ticks.
+[//]: # (Currently what we support is the shown as green ticks.)
 
-![Current Local MLOps Architecture](assets/mlops_arch.png)
+[//]: # ()
+[//]: # (![Current Local MLOps Architecture]&#40;assets/mlops_arch.png&#41;)
 
 **Please note**: 
-This framework has only been tested on Linux Ubuntu and Windows 11 and it works 
+This framework has only been tested on Linux Ubuntu and Windows 11 using WSL2 and it works 
 as expected.
-As we have not tested it yet on MacOS, we are not sure if it works in there.
+As we have not tested it yet on MacOS and directly on Windows, we are not sure if it works in there.
 
 # Table of Contents
 - [Overview](#overview)
@@ -72,10 +73,6 @@ BC, integrating essential MLOps tools:
 You will get the following project when you use this template to get started with
 your ML project.
 
-Any files or folders marked with `*` are off-limits—no need to change, modify, 
-or even worry about them. Just focus on the ones without the mark!
-
-Any files or folders marked with `^` can be extended, but carefully.
 ```
 ├── .github/             # GitHub Actions workflows (you are provided with a starter CI)
 ├── dags/                # Airflow DAG definitions 
@@ -97,18 +94,9 @@ Any files or folders marked with `^` can be extended, but carefully.
 ├── README.md            # Its a readme. Feel to change it!
 ├── CHANGES.md           # You put your changelog for every version here.
 ├── pyproject.toml       # Config file containing your package's build information and its metadata
-├── .env * ^             # Your environment variables that docker compose and python scripts can use (already added to .gitignore)
-├── .gitignore * ^       # Files to ignore when pushing to git.
-├── environment.yml      # Libraries required for local mlops and your project
-├── mlops_manager.py *   # Manager to manage the mlops services locally
-├── minikube_manager.py *# Manager to manage the kubernetes cluster locally 
-├── docker-compose.yml * # Docker compose that spins up all services locally for MLOps
-├── utils.py *           # Utility function to get the minikube gateway IP required for testing.
-├── docker_config.py *   # Utility function to get the docker image name based on your project.
-├── kube_config_inline * # This file is needed for Airflow to communicate with Minikube when testing locally in a prod env.
-├── airflow_test.cfg *   # This file is needed for testing your airflow dags.
-├── Dockerfile  ^        # Dockerfile for your package.
-└── dockerfiles/ *       # Dockerfiles required by Docker compose
+├── .env                 # Your environment variables that docker compose and python scripts can use (already added to .gitignore)
+├── .gitignore           # Files to ignore when pushing to git.
+└── environment.yml      # Libraries required for local mlops and your project
 ```
 
 
@@ -211,32 +199,128 @@ have been tried and tested.
 
 If you face any issues, please check out the [troubleshooting section](#troubleshooting)
 
+
+---
 ### Prerequisites
 
-- Docker and Docker Compose
-- [Mamba](https://github.com/conda-forge/miniforge) - Please make sure you 
-install `Python 3.12` as this repository has been tested with that version.
-- [Minikube on Linux](https://minikube.sigs.k8s.io/docs/start/?arch=%2Flinux%2Fx86-64%2Fstable%2Fbinary+download)
-- [Minikube on Windows](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fwindows%2Fx86-64%2Fstable%2F.exe+download)
+> **Note:** These steps are required only once during setup. You may need to update individual components later, but you won’t need to repeat the full installation process.
 
-#### Docker and Docker compose plugin Installation
+- Docker and Docker Compose  
+- [Mamba](https://github.com/conda-forge/miniforge) – Please make sure you install **Python 3.12**, as this repository has been tested with that version.  
+- [Minikube on Linux](https://minikube.sigs.k8s.io/docs/start/?arch=%2Flinux%2Fx86-64%2Fstable%2Fbinary+download)  
+- [Minikube on Windows](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fwindows%2Fx86-64%2Fstable%2F.exe+download)  
 
-For Linux users: please follow the steps mentioned in this [link](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
+---
 
-For Windows users: please follow the steps mentioned in this [link](https://docs.docker.com/desktop/setup/install/windows-install/)
+#### Docker and Docker Compose Plugin Installation
 
-This should install both Docker and Docker compose plugin.
-You can verify the installation by these commands
-```bash
-   docker --version
-   docker compose version
-```
-and output would be something like:
-```commandline
-  Docker version 27.5.1, build 9f9e405
-  Docker Compose version v2.32.4
-```
-This means now you have successfully installed Docker. 
+**For Linux users:** Follow the steps in the official Docker guide:  
+https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository 
+
+**For Windows users:** Follow the steps in the official Docker Desktop guide:  
+https://docs.docker.com/desktop/setup/install/windows-install/ 
+
+- On Windows, make sure to use the **WSL2 version** in the system requirements.  
+- This installation will also include the **Docker Compose plugin**.  
+
+Verify the installation by running:
+
+    docker --version
+    docker compose version
+
+Expected output will look similar to:
+
+    Docker version 27.5.1, build 9f9e405
+    Docker Compose version v2.32.4
+
+If you see something like the above, Docker is successfully installed.  
+
+---
+
+#### Install WSL2 (Windows only)
+
+Follow the official Microsoft instructions:  
+https://learn.microsoft.com/en-us/windows/wsl/install  
+
+Run the following command in **PowerShell (Admin mode):**
+
+    wsl --install
+
+After installation, log in to Ubuntu with:
+
+    wsl.exe -d Ubuntu  
+
+
+NOTE: If there are any issues installing WSL2, see if this guide helps,
+if not contact us.
+https://allthings.how/how-to-install-virtual-machine-platform-in-optional-windows-features-on-windows-11/
+
+---
+
+#### Install Mamba (Miniforge) inside WSL2 / Linux
+
+Follow instructions here:  
+https://github.com/conda-forge/miniforge  
+
+Run inside your terminal:
+
+    curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+
+    bash Miniforge3-$(uname)-$(uname -m).sh
+---
+
+#### Install Minikube inside WSL2 / Linux
+
+Official guide:  
+https://minikube.sigs.k8s.io/docs/start/?arch=%2Flinux%2Fx86-64%2Fstable%2Fbinary+download  
+
+Run inside your terminal:
+
+    curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+    sudo install minikube-linux-amd64 /usr/local/bin/minikube
+    rm minikube-linux-amd64
+
+---
+
+#### Verify Installations
+
+Inside your terminal (Linux or WSL2), check:
+
+    docker        # should print Docker help page
+    minikube      # should print Minikube help page
+    mamba         # should print Mamba help page
+    ls -la /var/run/docker.sock  # should print socket permissions
+
+If `/var/run/docker.sock` does not appear or has wrong permissions, adjust Docker Desktop settings (Windows only):  
+- **Settings → General → Use WSL**  
+- **Settings → Resources → WSL Integration → Enable Ubuntu**
+
+---
+
+#### Configure Docker Permissions inside WSL2
+
+Add your user to the docker group:
+
+    sudo usermod -aG docker $USER
+
+Apply the group changes immediately:
+
+    newgrp docker
+
+Alternatively, log out and back into your terminal session:
+
+    exit
+    wsl -d Ubuntu-20.04   # Windows only
+
+---
+
+#### Fix Docker Socket Permissions (if needed)
+
+If necessary, run:
+
+    sudo chmod 777 /var/run/docker.sock
+
+---
 
 
 Once the pre-requisites are done, you can go ahead with the project creation:
@@ -255,7 +339,9 @@ Once the pre-requisites are done, you can go ahead with the project creation:
 When prompted for input, enter the details requested. If you dont provide any 
 input for a given choice, the first choice from the list is taken as the default.
 
-Once the project is created, please read the [user guide](https://bcdev.github.io/gaiaflow/dev/).
+Once the project is created, please read the [user guide](https://bcdev.github.io/gaiaflow/dev_guide/).
+
+---
 
 
 ## Troubleshooting
@@ -332,20 +418,3 @@ If you face any other problems not mentioned above, please reach out to us.
 - [Minio](https://min.io/docs/minio/container/index.html)
 - [JupyterLab](https://jupyterlab.readthedocs.io/)
 - [Minikube](https://minikube.sigs.k8s.io/docs/)
-
-
-### TODO:
-
-Make ECR work. How to add credentials?
-
-S3 credentials access?
-
-Add sensor based DAGs
-
-Update CI to use ECR credentials.
-
-How to share Secrets?
-
-Monitoring Airflow
-
-MLFlow Deployment

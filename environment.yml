@@ -8,13 +8,6 @@ dependencies:
   - pip
   - pip:
       - ruamel.yaml
-  # Development Dependencies - Tools
-  - mkdocs
-  - mkdocs-autorefs
-  - mkdocs-material
-  - mkdocs-jupyter
-  - mkdocstrings
-  - mkdocstrings-python
   # Testing
   - pytest
   - ruff

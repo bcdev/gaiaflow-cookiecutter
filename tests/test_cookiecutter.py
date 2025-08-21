@@ -19,21 +19,11 @@ BASE_CONTEXT = {
 }
 
 CORE_FILES = {
-    "mlops_manager.py",
-    "minikube_manager.py",
-    "kube_config_inline",
-    "utils.py",
-    "docker_image_name_generator.py",
-    "docker-compose.yml",
     "README.md",
     ".env",
     ".gitignore",
     "environment.yml",
     "dags/README.md",
-    "dockerfiles/README.md",
-    "dockerfiles/mlflow/requirements.txt",
-    "dockerfiles/mlflow/Dockerfile",
-    "dockerfiles/airflow/Dockerfile",
     "notebooks/README.md",
     "notebooks/examples/mlflow_direct_inference.ipynb",
     "notebooks/examples/mlflow_local_deploy_inference.ipynb",
@@ -143,20 +133,6 @@ def test_project_generation(temp_dir: str, test_case: dict[str, Any]):
     with env_path.open(encoding="utf-8") as f:
         env_data = yaml.safe_load(f)
         assert context["folder_name"] in env_data["name"], "Wrong environment name"
-
-    docker_compose = (project_dir / "docker-compose.yml").read_text()
-    minio_configs = [
-        "MINIO_ROOT_USER",
-        "MINIO_ROOT_PASSWORD",
-        "AWS_ACCESS_KEY_ID",
-        "AWS_SECRET_ACCESS_KEY",
-        "MLFLOW_S3_ENDPOINT_URL",
-    ]
-    artifact_config = "--default-artifact-root s3://${MLFLOW_BUCKET_NAME} --artifacts-destination s3://${MLFLOW_BUCKET_NAME}"
-
-    for config in minio_configs:
-        assert config in docker_compose
-    assert artifact_config in docker_compose
 
     actual_files = get_all_files(project_dir)
     core_files_copy = CORE_FILES.copy()

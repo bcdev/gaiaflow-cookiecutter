@@ -142,7 +142,8 @@ class MnistTrainer:
             return {"model_uri": model_uri}
 
 
-def example_train(preprocessed_path: str, bucket_name: str):
+def example_train(preprocessed_path: str, bucket_name: str, **kwargs):
+    print("Called with kwargs:::", kwargs)
     train_data, test_data, s3_data_path = load_preprocessed_data(preprocessed_path,
                                                     bucket_name)
     model = get_model()
