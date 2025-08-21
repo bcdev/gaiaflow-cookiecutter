@@ -71,7 +71,8 @@ def save_data(
     return object_path, bucket_name
 
 
-def example_preprocess(dummy_arg: str):
+def example_preprocess(dummy_arg: str, **kwargs):
+    print("Called with kwargs:::", kwargs)
     print("Called with dummy_arg:::", dummy_arg)
     # For training data
     (X_train, y_train), (X_test, y_test) = load_raw_data()

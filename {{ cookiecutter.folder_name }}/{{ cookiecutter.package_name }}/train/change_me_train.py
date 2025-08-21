@@ -86,7 +86,8 @@ class Trainer:
         return "path-to-best-model"
 
 
-def train(preprocessed_path: str, bucket_name: str):
+def train(preprocessed_path: str, bucket_name: str, **kwargs):
+    print("Called with kwargs:::", kwargs)
     # Modify this path to point to the preprocessed data file
     train_data, test_data = load_preprocessed_data(preprocessed_path, bucket_name)
     model = get_model()

@@ -55,7 +55,7 @@ def save_data(data: Any, path: str):
     print("Saving data successful.")
 
 
-def preprocess(path: str):
+def preprocess(path: str, **kwargs):
     """
     General preprocessing pipeline. Includes loading, cleaning, and feature engineering.
 
@@ -69,6 +69,7 @@ def preprocess(path: str):
     Returns:
         The preprocessed dataset.
     """
+    print("preprocess kwargs:", kwargs)
     data = load_raw_data(path)
     data = clean_data(data)
     data = feature_engineering(data)
