@@ -1,3 +1,12 @@
+## Changes in 1.0.0
+
+* Gaiaflow has been refactored into two separate repositories: a 
+  [core library](https://github.com/bcdev/gaiaflow) 
+  and a [template project](https://github.com/bcdev/gaiaflow-cookiecutter),
+  improving maintainability and modularity.
+* The Cookiecutter template has been streamlined, making it leaner, more robust,
+  and easier to use for new projects.
+
 ## Changes in 0.3.0
 
 * Airflow 3.0 is now supported.
