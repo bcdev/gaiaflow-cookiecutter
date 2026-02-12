@@ -1,0 +1,70 @@
+[project]
+authors = [
+    {name = "{{ cookiecutter.author_name }}", email = "{{ cookiecutter.author_email }}"},
+]
+dependencies = ["boto3>=1.42.47,<2"]
+name = "{{ cookiecutter.package_name }}"
+requires-python = ">= 3.11"
+version = "0.1.0"
+description = "{{ cookiecutter.project_description }}"
+
+[project.urls]
+Homepage = "Update your homepage here"
+Repository = "Update your repository here"
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tool.pixi.pypi-dependencies]
+{{ cookiecutter.package_name }} = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+[tool.pixi.tasks.lint]
+cmd = "ruff check --fix src tests"
+
+[tool.pixi.tasks.format]
+cmd = "ruff format src tests"
+
+[tool.pixi.tasks.isort]
+cmd = "isort src tests"
+
+[tool.pixi.tasks.test]
+cmd = "pytest --cov src/{{ cookiecutter.package_name }} --cov-report=html"
+
+[tool.pixi.dependencies]
+python = ">3.10,<3.13"
+mlflow = ">=3.9.0,<4"
+apache-airflow = ">=3.1.7,<4"
+psycopg2-binary = ">=2.9.10,<3"
+asyncpg = ">=0.31.0,<0.32"
+jupyter = ">=1.1.1,<2"
+python-dotenv = ">=1.2.1,<2"
+git = ">=2.52.0,<3"
+fsspec = ">=2026.2.0,<2027"
+typer = ">=0.23.0,<0.24"
+keras = ">=3.13.2,<4"
+tensorflow = ">=2.19.1,<3"
+numpy = "2.0.2.*"
+pytest-cov = ">=7.0.0,<8"
+pytest = ">=9.0.2,<10"
+ruff = ">=0.15.0,<0.16"
+isort = ">=7.0.0,<8"
+pip = ">=26.0.1,<27"
+
+[tool.hatch.build]
+sources = ["src"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/{{ cookiecutter.package_name }}/**/*", "pyproject.toml", "README.md"]
+
+[tool.hatch.build.targets.wheel]
+include = ["src/{{ cookiecutter.package_name }}/**/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

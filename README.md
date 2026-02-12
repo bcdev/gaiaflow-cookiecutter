@@ -61,7 +61,9 @@ As we have not tested it yet on MacOS and directly on Windows, we are not sure i
 ## Overview
 
 This template provides a standardized project structure for ML initiatives at 
-BC, integrating essential MLOps tools:
+BC.
+
+A python package [Gaiaflow](https://pypi.org/project/gaiaflow/) has also been developed for integrating essential MLOps tools:
 - **Apache Airflow**: For orchestrating ML pipelines and workflows
 - **MLflow**: For experiment tracking and model registry
 - **JupyterLab**: For interactive development and experimentation
@@ -79,7 +81,7 @@ your ML project.
 │                          (you can either define dags using a config-file (dag-factory)
 │                           or use Python scripts.)
 ├── notebooks/           # JupyterLab notebooks
-├── your_package/                  
+├── your_package/         (If you chose pixi as env manager, this will be suffixed by `src/`         
 │   │                     (For new projects, it would be good to follow this standardized folder structure.
 │   │                      You are of course allowed to add anything you like to it.)
 │   ├── dataloader/      # Your Data loading scripts
@@ -96,229 +98,32 @@ your ML project.
 ├── pyproject.toml       # Config file containing your package's build information and its metadata
 ├── .env                 # Your environment variables that docker compose and python scripts can use (already added to .gitignore)
 ├── .gitignore           # Files to ignore when pushing to git.
-└── environment.yml      # Libraries required for local mlops and your project
+└── environment.yml      # Libraries required for local mlops and your project (if pixi is used, this will not be present)
 ```
-
-
-## MLOps Components
-
-Before you get started, let's explore the tools that we are using for this 
-standardized MLOps framework 
-
-### 0. Cookiecutter
-Purpose: Project scaffolding and template generation
-
-- Provides a standardized way to create ML projects with predefined structures.
-- Ensures consistency across different ML projects within BC
-
-
-### 1. Apache Airflow
-
-Purpose: Workflow orchestration
-
-- Manages and schedules data pipelines.
-- Automates end-to-end ML workflows, including data ingestion, training, deployment and re-training.
-- Provides a user-friendly web interface for tracking task execution's status.
-
-#### Airflow UI
-
-https://github.com/user-attachments/assets/b7a76c27-2f38-489f-9798-d0af4ac7619b
-
-- **DAGs (Directed Acyclic Graphs)**: A workflow representation in Airflow. You 
-can enable, disable, and trigger DAGs from the UI.
-- **Graph View**: Visual representation of task dependencies.
-- **Tree View**: Displays DAG execution history over time.
-- T**ask Instance**: A single execution of a task in a DAG.
-- **Logs**: Each task's execution details and errors.
-- **Code View**: Shows the Python code of a DAG.
-- **Trigger DAG**: Manually start a DAG run.
-- **Pause DAG**: Stops automatic DAG execution.
-
-Common Actions
-
-- **Enable a DAG**: Toggle the On/Off button.
-- **Manually trigger a DAG**: Click Trigger DAG ▶️.
-- **View logs**: Click on a task instance and select Logs.
-- **Restart a failed task**: Click Clear to rerun a specific task.
-
-### 2. MLflow
-
-Purpose: Experiment tracking and model management
-
-- Tracks and records machine learning experiments, including hyperparameters, performance metrics, and model artifacts.
-- Facilitates model versioning and reproducibility.
-- Supports multiple deployment targets, including cloud platforms, Kubernetes, and on-premises environments.
-
-#### MLFlow UI
-
-https://github.com/user-attachments/assets/5c639c34-cba2-4682-a2ed-6a854e9386c1
-
-- **Experiments**: Group of runs tracking different versions of ML models.
-- **Runs**: A single execution of an ML experiment with logged parameters, 
-metrics, and artifacts.
-- **Parameters**: Hyperparameters or inputs logged during training.
-- **Metrics**: Performance indicators like accuracy or loss.
-- **Artifacts**: Files such as models, logs, or plots.
-- **Model Registry**: Centralized storage for trained models with versioning.
-
-Common Actions
-
-- **View experiment runs**: Go to Experiments > Select an experiment
-- **Compare runs**: Select multiple runs and click Compare.
-- **View parameters and metrics**: Click on a run to see details.
-- **View registered model**: Under Artifacts, select a model and click Register 
-Model.
-
-### 3. JupyterLab
-
-Purpose: Interactive development environment
-
-- Provides an intuitive and interactive web-based interface for exploratory data analysis, visualization, and model development.
-
-### 4. MinIO
-
-Purpose: Object storage for ML artifacts
-
-- Acts as a cloud-native storage solution for datasets and models.
-- Provides an S3-compatible API for seamless integration with ML tools.
-
-### 5. Minikube
-
-Purpose: Local Kubernetes cluster for development & testing
-
-- Allows you to run a single-node Kubernetes cluster locally.
-- Simulates a production-like environment to test Airflow DAGs end-to-end.
-- Great for validating KubernetesExecutor, and Dockerized task behavior before deploying to a real cluster.
-- Mimics production deployment without the cost or risk of real cloud infrastructure.
-
 
 ## Getting Started
 
 Please make sure that you install the following from the links provided as they
 have been tried and tested.
 
-If you face any issues, please check out the [troubleshooting section](#troubleshooting)
-
+If you face any issues, please let us know.
 
 ---
 ### Prerequisites
 
-> **Note:** These steps are required only once during setup. You may need to update individual components later, but you won’t need to repeat the full installation process.
-
-- Docker and Docker Compose  
 - [Mamba](https://github.com/conda-forge/miniforge) – Please make sure you install **Python 3.12**, as this repository has been tested with that version.  
-- [Minikube on Linux](https://minikube.sigs.k8s.io/docs/start/?arch=%2Flinux%2Fx86-64%2Fstable%2Fbinary+download)  
-- [Minikube on Windows](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fwindows%2Fx86-64%2Fstable%2F.exe+download)  
-
+ or 
+- [Pixi](https://pixi.prefix.dev/latest/installation/) (We recommend using this)
 ---
 
-#### Docker and Docker Compose Plugin Installation
-
-**For Linux users:** Follow the steps in the official Docker guide:  
-https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository 
-
-**For Windows users:** Follow the steps in the official Docker Desktop guide:  
-https://docs.docker.com/desktop/setup/install/windows-install/ 
-
-- On Windows, make sure to use the **WSL2 version** in the system requirements.  
-- This installation will also include the **Docker Compose plugin**.  
-
-Verify the installation by running:
-
-    docker --version
-    docker compose version
-
-Expected output will look similar to:
-
-    Docker version 27.5.1, build 9f9e405
-    Docker Compose version v2.32.4
-
-If you see something like the above, Docker is successfully installed.  
-
----
-
-#### Install WSL2 (Windows only)
-
-Follow the official Microsoft instructions:  
-https://learn.microsoft.com/en-us/windows/wsl/install  
-
-Run the following command in **PowerShell (Admin mode):**
-
-    wsl --install
-
-After installation, log in to Ubuntu with:
-
-    wsl.exe -d Ubuntu  
-
-
-NOTE: If there are any issues installing WSL2, see if this guide helps,
-if not contact us.
-https://allthings.how/how-to-install-virtual-machine-platform-in-optional-windows-features-on-windows-11/
-
----
-
-#### Install Mamba (Miniforge) inside WSL2 / Linux
-
-Follow instructions here:  
-https://github.com/conda-forge/miniforge  
-
-Run inside your terminal:
-
-    curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-
-    bash Miniforge3-$(uname)-$(uname -m).sh
----
-
-#### Install Minikube inside WSL2 / Linux
-
-Official guide:  
-https://minikube.sigs.k8s.io/docs/start/?arch=%2Flinux%2Fx86-64%2Fstable%2Fbinary+download  
-
-Run inside your terminal:
-
-    curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
-    sudo install minikube-linux-amd64 /usr/local/bin/minikube
-    rm minikube-linux-amd64
-
----
 
 #### Verify Installations
 
 Inside your terminal (Linux or WSL2), check:
 
-    docker        # should print Docker help page
-    minikube      # should print Minikube help page
     mamba         # should print Mamba help page
-    ls -la /var/run/docker.sock  # should print socket permissions
-
-If `/var/run/docker.sock` does not appear or has wrong permissions, adjust Docker Desktop settings (Windows only):  
-- **Settings → General → Use WSL**  
-- **Settings → Resources → WSL Integration → Enable Ubuntu**
-
----
-
-#### Configure Docker Permissions inside WSL2
-
-Add your user to the docker group:
-
-    sudo usermod -aG docker $USER
-
-Apply the group changes immediately:
-
-    newgrp docker
-
-Alternatively, log out and back into your terminal session:
-
-    exit
-    wsl -d Ubuntu-20.04   # Windows only
-
----
-
-#### Fix Docker Socket Permissions (if needed)
-
-If necessary, run:
-
-    sudo chmod 777 /var/run/docker.sock
+    or
+    pixi          # should print pixi help page
 
 ---
 
@@ -327,94 +132,25 @@ Once the pre-requisites are done, you can go ahead with the project creation:
 
 1. Create a separate environment for cookiecutter
 ```bash
-  mamba create -n cc cookiecutter ruamel.yaml
+  mamba create -n cc cookiecutter ruamel.yaml 
   mamba activate cc
 ```
 
 2. Generate the project from template:
 ```bash
-  cookiecutter https://github.com/bcdev/gaiaflow
+  cookiecutter https://github.com/bcdev/gaiaflow-cookiecutter
 ```
 
 When prompted for input, enter the details requested. If you dont provide any 
 input for a given choice, the first choice from the list is taken as the default.
 
-Once the project is created, please read the [user guide](https://bcdev.github.io/gaiaflow/dev_guide/).
+3. (Optional) - If you wish to use Gaiaflow dockerized MLOps services 
+(Airflow, MLFlow, Minio) please follow the steps
+[here](https://github.com/bcdev/gaiaflow). Once gaiaflow is installed, 
+please read the [user guide](https://bcdev.github.io/gaiaflow/dev_guide/).
 
 ---
-
-
-## Troubleshooting
-0. If you are windows, please use the `miniforge prompt` commandline.
-
-1. If you face issue like `Docker Daemon not started`, start it using:
-```bash
-  sudo systemctl start docker
-```
-and try the docker commands again in a new terminal.
-
-
-2. If you face an issue as follows:
-`Got permission denied while trying to connect to the Docker daemon socket at 
-unix:///var/run/docker.sock: `,
-do the following
-```bash
-  sudo chmod 666 /var/run/docker.sock
-```
-and try the docker commands again in a new terminal.
-
-
-3. If you face an issue like
-`Cannot connect to the Docker daemon at unix:///home//.docker/desktop/docker.sock. 
-Is the docker daemon running?`,
-it is likely because of you have two contexts of docker running.
-
-To view the docker contexts,
-```bash
-   docker context ls
-```
-This will show the list of docker contexts. Check if default is enabled (it 
-should have a * beside it)
-If not, you might probably have desktop as your context enabled.
-To confirm which context you are in:
-```bash
-   docker context show
-```
-
-To use the default context, do this:
-```bash
-   docker context use default
-```
-
-Check for the following file:
-```bash
-  cat ~/.docker/config.json
-```
-If it is empty, all good, if not, it might be something like this:
-```
-  {
-	"auths": {},
-	"credsStore": "desktop"
-  }
-```
-Completely move this file away from this location or delete it and try running 
-docker again.
-
-4. If you face some permissions issues on some files like `Permission Denied`, 
-as a workaround, please use this and let us know so that we can update this 
-repo.
-```bash
-  sudo chmod 666 <your-filename> 
-```
-
-If you face any other problems not mentioned above, please reach out to us.
-
 
 ## Acknowledgments
 
 - [Cookiecutter](https://github.com/cookiecutter/cookiecutter)
-- [Apache Airflow](https://airflow.apache.org/)
-- [MLflow](https://mlflow.org/)
-- [Minio](https://min.io/docs/minio/container/index.html)
-- [JupyterLab](https://jupyterlab.readthedocs.io/)
-- [Minikube](https://minikube.sigs.k8s.io/docs/)

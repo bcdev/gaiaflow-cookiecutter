@@ -1,5 +1,5 @@
 {
-    " ": "\n\n\n  ______ _______ _____ _______ _______         _____  _  _  _\n |  ____ |_____|   |   |_____| |______ |      |     | |  |  |\n |_____| |     | __|__ |     | |       |_____ |_____| |__|__|\n\n\n\n\nGaiaFlow is a ML project template that helps you create standardized projects across BC and also providing you with a MLOps framework (currently local) to streamline your ML projects.\n\nIn this Cookiecutter ML project template, you will get the following questions.\n\nProject Name: Please provide your project name (only spaces, dots, underscores or dashes special characters allowed)\n\nProject Description: A small description of your project.\n\nYour name and email address: For adding it to the python package metadata.\n\nShow examples: Do you want to see the out-of-the-box airflow examples along with an example ML project working end-to-end? These examples would be visible in the Airflow UI. (Highly recommeded for first time users!!)\n\nFolder name: By default, we will provide you with a folder name based on your project name. If you don't like it, you can change it in this option.\n\nPackage Name: Please provide a package name where you will develop your project. It should be different than the folder name.\n\n[Please press enter to continue]",
+    " ": "\n\n\n  ______ _______ _____ _______ _______         _____  _  _  _\n |  ____ |_____|   |   |_____| |______ |      |     | |  |  |\n |_____| |     | __|__ |     | |       |_____ |_____| |__|__|\n\n\n\n\nGaiaFlow is a ML project template that helps you create standardized projects across BC and also providing you with a MLOps framework (currently local) to streamline your ML projects.\n\nIn this Cookiecutter ML project template, you will get the following questions.\n\nProject Name: Please provide your project name (only spaces, dots, underscores or dashes special characters allowed)\n\nProject Description: A small description of your project.\n\nYour name and email address: For adding it to the python package metadata.\n\nShow examples: Do you want to see the out-of-the-box airflow examples along with an example ML project working end-to-end? These examples would be visible in the Airflow UI. (Highly recommeded for first time users!!)\n\nEnvironment Manager: Please choose which python environment manager you would like to use for your project. We recommend using pixi, which is the default.\n\nPackage Name: Please provide a package name which you will develop in this project.\n\n[Please press enter to continue]",
     "project_name": "Enter the name of your ML Project",
     "project_description": "A short description of the project",
     "author_name": "Your Name",
@@ -8,6 +8,9 @@
         "yes",
         "no"
     ],
-    "folder_name": "{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_').replace('.', '_') }}",
-    "package_name": "Enter your package name (should be different from folder name, only underscores allowed)"
+    "environment_manager": [
+        "pixi",
+        "conda"
+    ],
+    "package_name": "Enter your package name (only underscores allowed)"
 }

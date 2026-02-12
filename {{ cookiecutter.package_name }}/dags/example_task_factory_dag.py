@@ -46,10 +46,10 @@ with DAG(
             func_path="{{ cookiecutter.package_name }}:example_train",
             func_kwargs={
                 "preprocessed_path": FromTask(
-                    task="change_group_id.preprocess_data", key="preprocessed_path"
+                    task="Trainer.preprocess_data", key="preprocessed_path"
                 ),
                 "bucket_name": FromTask(
-                    task="change_group_id.preprocess_data", key="bucket_name"
+                    task="Trainer.preprocess_data", key="bucket_name"
                 ),
             },
 

@@ -1,13 +1,13 @@
-name: {{ cookiecutter.folder_name }}
+name: {{ cookiecutter.package_name }}
 channels:
   - conda-forge
 dependencies:
   # required for mlops framework
   - python >3.10,<3.13
   - mlflow
+  - apache-airflow
   - psycopg2-binary
   - asyncpg
-  - boto3
   - jupyter
   - python-dotenv
   - git
@@ -26,3 +26,7 @@ dependencies:
   - ruff
   - isort
   # add your libraries here
+  - pip
+  - pip:
+      - boto3
+

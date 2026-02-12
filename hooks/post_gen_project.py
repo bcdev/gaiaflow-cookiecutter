@@ -1,5 +1,6 @@
 import os
-import pathlib
+import subprocess
+from pathlib import Path
 import shutil
 import sys
 
@@ -15,6 +16,8 @@ def remove_file(file_path):
             print(f"Removed file: {file_path}")
         except Exception as e:
             print(f"Error removing file {file_path}: {e}")
+    else:
+        print(f"File not found on path: {file_path}")
 
 
 def remove_directory(dir_path):
@@ -27,9 +30,9 @@ def remove_directory(dir_path):
             print(f"Error removing directory {dir_path}: {e}")
 
 
-def modify_environment_yaml(env_file: pathlib.Path, to_be_deleted_deps: list[str]):
+def modify_environment_yaml(env_file: Path, to_be_deleted_deps: list[str]):
     """Remove unwanted libraries from environment.yml based on user input."""
-    if not pathlib.Path.exists(env_file):
+    if not Path.exists(env_file):
         print(f"{str(env_file)} not found.")
         return
 
@@ -59,8 +62,44 @@ def modify_environment_yaml(env_file: pathlib.Path, to_be_deleted_deps: list[str
         print(f"Error writing {env_file}: {e}")
 
 
+def update_environment_files():
+    file_paths_config = [
+        "pyproject.toml",
+        "environment.yml",
+    ]
+
+    for path in file_paths_config:
+        full_file_path = os.path.join(os.getcwd(), path)
+        remove_file(full_file_path)
+
+    move_package_into_src()
+
+    pixi_pyproject = "pixi_pyproject.toml"
+    full_pixi_pyproject_path = Path(os.getcwd(), pixi_pyproject)
+    full_pyproject_path = Path(os.getcwd(), "pyproject.toml")
+    full_pixi_pyproject_path.rename(full_pyproject_path)
+
+
+def move_package_into_src():
+    package_name = "{{ cookiecutter.package_name }}"
+
+    root_pkg = Path(package_name)
+    src_pkg = Path("src") / package_name
+
+    shutil.rmtree(src_pkg, ignore_errors=True)
+
+    print(f"Moving {root_pkg} to {src_pkg}")
+    shutil.move(str(root_pkg), str(src_pkg))
+
+
+def run(cmd, check=True):
+    print(f"> {' '.join(cmd)}")
+    subprocess.run(cmd, check=check)
+
+
 def main():
     show_examples = "{{ cookiecutter.show_examples }}".strip().lower()
+    environment_manager = "{{ cookiecutter.environment_manager }}"
 
     if show_examples != "yes":
         file_paths_config = [
@@ -79,6 +118,9 @@ def main():
                 os.getcwd(), "{{ cookiecutter.package_name }}", file_path_relative
             )
             remove_file(full_file_path)
+
+    if environment_manager == "pixi":
+        update_environment_files()
 
 
 if __name__ == "__main__":
