@@ -117,7 +117,6 @@ def get_all_files(directory: pathlib.Path) -> set[str]:
 @pytest.mark.parametrize("test_case", TEST_CASES)
 def test_project_generation(temp_dir: str, test_case: dict[str, Any]):
     context = test_case["context"]
-    print(context)
     expects = test_case["expects"]
     project_dir = generate_project(temp_dir, context)
 

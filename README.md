@@ -149,6 +149,9 @@ input for a given choice, the first choice from the list is taken as the default
 [here](https://github.com/bcdev/gaiaflow). Once gaiaflow is installed, 
 please read the [user guide](https://bcdev.github.io/gaiaflow/dev_guide/).
 
+> NOTE: The python package currently only works with the conda version of this template, 
+pixi version will be released soon.
+
 ---
 
 ## Acknowledgments
