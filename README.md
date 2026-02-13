@@ -43,19 +43,9 @@ As we have not tested it yet on MacOS and directly on Windows, we are not sure i
 # Table of Contents
 - [Overview](#overview)
 - [Project Structure from this template.](#project-structure-from-this-template)
-- [ML Pipeline Overview](#ml-pipeline-overview)
-  * [0. Cookiecutter](#0-cookiecutter)
-  * [1. Apache Airflow](#1-apache-airflow)
-    + [Airflow UI](#airflow-ui)
-  * [2. MLflow](#2-mlflow)
-    + [MLFlow UI](#mlflow-ui)
-  * [3. JupyterLab](#3-jupyterlab)
-  * [4. MinIO](#4-minio)
 - [Getting Started](#getting-started)
   * [Prerequisites](#prerequisites)
-    + [Docker and Docker compose plugin Installation](#docker-and-docker-compose-plugin-installation)
-  * [Installation](#installation)
-- [Troubleshooting](#troubleshooting)
+  * [Create project from Cookiecutter template](#create-project-from-cookiecutter-template)
 - [Acknowledgments](#acknowledgments)
 
 ## Overview
@@ -126,6 +116,8 @@ Inside your terminal (Linux or WSL2), check:
     pixi          # should print pixi help page
 
 ---
+
+### Create project from Cookiecutter template
 
 
 Once the pre-requisites are done, you can go ahead with the project creation:
