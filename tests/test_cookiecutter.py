@@ -1,7 +1,5 @@
 import pathlib
-import shutil
 import subprocess
-import tempfile
 from itertools import product
 from typing import Any
 
@@ -14,7 +12,6 @@ BASE_CONTEXT = {
     "project_description": "Some description",
     "author_name": "John Doe",
     "author_email": "john@doe.com",
-    "folder_name": "my_ml_project",
     "package_name": "my_package",
 }
 
@@ -22,7 +19,7 @@ CORE_FILES = {
     "README.md",
     ".env",
     ".gitignore",
-    "environment.yml",
+    "pyproject.toml",
     "dags/README.md",
     "notebooks/README.md",
     "notebooks/examples/mlflow_direct_inference.ipynb",
@@ -66,6 +63,7 @@ EXAMPLE_ML_PACKAGE_FILES = [
 
 # Possible choices for each parameter to create combinations of them.
 PARAMETER_OPTIONS = {
+    "environment_manager": ["pixi", "conda"],
     "show_examples": ["yes", "no"],
 }
 
@@ -93,10 +91,8 @@ TEST_CASES = generate_test_cases()
 
 
 @pytest.fixture
-def temp_dir():
-    d = tempfile.mkdtemp()
-    yield d
-    shutil.rmtree(d)
+def temp_dir(tmp_path):
+    return tmp_path
 
 
 def generate_project(temp_dir: str, context: dict[str, Any]) -> pathlib.Path:
@@ -107,7 +103,7 @@ def generate_project(temp_dir: str, context: dict[str, Any]) -> pathlib.Path:
         extra_context=context,
         output_dir=temp_dir,
     )
-    return pathlib.Path(temp_dir) / context["folder_name"]
+    return pathlib.Path(temp_dir) / context["package_name"]
 
 
 def get_all_files(directory: pathlib.Path) -> set[str]:
@@ -127,12 +123,13 @@ def test_project_generation(temp_dir: str, test_case: dict[str, Any]):
     assert project_dir.exists(), "Project directory not created"
 
     readme_content = (project_dir / "README.md").read_text(encoding="utf-8")
-    assert context["project_name"] in readme_content, "Project name not in " "README"
+    assert context["project_name"] in readme_content, "Project name not in README"
 
-    env_path = project_dir / "environment.yml"
-    with env_path.open(encoding="utf-8") as f:
-        env_data = yaml.safe_load(f)
-        assert context["folder_name"] in env_data["name"], "Wrong environment name"
+    if context["environment_manager"] == "conda":
+        env_path = project_dir / "environment.yml"
+        with env_path.open(encoding="utf-8") as f:
+            env_data = yaml.safe_load(f)
+            assert context["package_name"] in env_data["name"], "Wrong environment name"
 
     actual_files = get_all_files(project_dir)
     core_files_copy = CORE_FILES.copy()
@@ -140,6 +137,11 @@ def test_project_generation(temp_dir: str, test_case: dict[str, Any]):
     if expects["examples"]:
         core_files_copy.update(EXAMPLE_MANUAL_DAGS_FILES)
         core_files_copy.update(EXAMPLE_ML_PACKAGE_FILES)
+
+    if context["environment_manager"] == "pixi":
+        core_files_copy = {
+            ("src/" + f) if f.startswith("my_package/") else f for f in core_files_copy
+        }
 
     core_files_copy.update(MANUAL_DAGS_FILES)
 
@@ -153,6 +155,9 @@ def test_project_generation(temp_dir: str, test_case: dict[str, Any]):
         for file in EXAMPLE_MANUAL_DAGS_FILES:
             assert file in actual_files, f"Unexpected manual example DAG file: {file}"
         for file in EXAMPLE_ML_PACKAGE_FILES:
+            if context["environment_manager"] == "pixi":
+                if file.startswith("my_package/"):
+                    file = "src/" + file
             assert file in actual_files, f"Missing ML pacakge example file{file}"
 
 

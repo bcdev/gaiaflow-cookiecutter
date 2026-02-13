@@ -6,7 +6,7 @@ authors = [
 description = """\
    GaiaFlow is a MLOps tool that streamlines the Earth Observation ML projects.
    NOTE: This is only to make sure that while testing this repository, pytest does not include the tests from the
-   to-be-generated project from the `cookiecutter.folder_name` package.
+   to-be-generated project from the `cookiecutter.package_name` package.
     """
 keywords = [
     "Airflow",
@@ -31,4 +31,4 @@ classifiers = [
 ]
 
 [tool.pytest.ini_options]
-norecursedirs = ["{{ cookiecutter.folder_name }}", "//*"]
+norecursedirs = ["{{ cookiecutter.package_name }}", "//*"]
